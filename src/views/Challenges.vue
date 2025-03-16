@@ -1,5 +1,5 @@
 <template>
-    <div class="challenges-page">
+    <div class="challenges-page animate-fade-in">
       <div class="page-header">
         <h1>Challenges & Activities</h1>
         <div class="header-actions">
@@ -486,6 +486,7 @@ import { useAuthStore } from '../store/auth';
     height: 100%;
     background: var(--accent-primary);
     border-radius: 3px;
+    transition: width 0.3s ease;
   }
   
   .progress-text {
@@ -521,20 +522,20 @@ import { useAuthStore } from '../store/auth';
       flex-direction: column;
       align-items: flex-start;
     }
-    
+  
     .header-actions {
       width: 100%;
     }
-    
+  
     .search-input {
       width: 100%;
     }
-    
+  
     .tabs {
       overflow-x: auto;
       padding-bottom: 0.75rem;
     }
-    
+  
     .tabs button {
       white-space: nowrap;
     }

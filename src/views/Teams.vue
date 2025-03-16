@@ -1,5 +1,5 @@
 <template>
-    <div class="teams-page">
+    <div class="teams-page animate-fade-in">
       <div class="page-header">
         <h1>Teams</h1>
         <button class="primary" @click="showCreateTeamModal = true">
@@ -42,35 +42,10 @@
               <h3>{{ team.name }}</h3>
               <p class="team-meta">{{ team.memberCount }} members</p>
             </div>
-            <div class="team-rank" :class="{ 'top-rank': team.rank <= 3 }">
-              #{{ team.rank }}
-            </div>
           </div>
           
-          <div class="team-stats">
-            <div class="stat-item">
-              <div class="stat-label">Challenges</div>
-              <div class="stat-value">{{ team.challengesCompleted }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">Points</div>
-              <div class="stat-value">{{ team.points }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">Streak</div>
-              <div class="stat-value">{{ team.streak }} days</div>
-            </div>
-          </div>
-          
-          <div class="team-members">
-            <h4>Top Members</h4>
-            <div class="members-list">
-              <div v-for="(member, index) in team.topMembers" :key="index" class="member-item">
-                <div class="member-avatar">{{ member.initials }}</div>
-                <div class="member-name">{{ member.name }}</div>
-                <div class="member-points">{{ member.points }} pts</div>
-              </div>
-            </div>
+          <div class="team-description">
+            <p>{{ team.description }}</p>
           </div>
           
           <div class="team-actions">
@@ -144,7 +119,7 @@
   
   <script>
   import { computed, onMounted, ref } from 'vue';
-import { addTeamMember, createTeam, getTeams, listTeamMembers } from '../services/api';
+import { addTeamMember, createTeam, getTeams } from '../services/api';
 import { useAuthStore } from '../store/auth';
   
   export default {
@@ -154,7 +129,6 @@ import { useAuthStore } from '../store/auth';
       const userId = computed(() => authStore.user?.id || 1);
       
       const teams = ref([]);
-      const userTeams = ref([]);
       const searchQuery = ref('');
       const activeTab = ref('all');
       const showCreateTeamModal = ref(false);
@@ -197,110 +171,53 @@ import { useAuthStore } from '../store/auth';
                 name: "Team Alpha",
                 description: "The leading wellness team focused on fitness and nutrition",
                 memberCount: 12,
-                rank: 1,
-                challengesCompleted: 45,
-                points: 2850,
-                streak: 14,
                 isMember: true,
-                initials: "TA",
-                topMembers: [
-                  { name: "Jane Smith", points: 780, initials: "JS" },
-                  { name: "Alex Johnson", points: 695, initials: "AJ" },
-                  { name: "Mike Wilson", points: 620, initials: "MW" }
-                ]
+                initials: "TA"
               },
               {
                 id: 2,
                 name: "Team Omega",
                 description: "Focused on mindfulness and mental wellness challenges",
                 memberCount: 8,
-                rank: 2,
-                challengesCompleted: 38,
-                points: 2340,
-                streak: 7,
                 isMember: false,
-                initials: "TO",
-                topMembers: [
-                  { name: "John Doe", points: 720, initials: "JD" },
-                  { name: "Sarah Lee", points: 680, initials: "SL" },
-                  { name: "David Kim", points: 590, initials: "DK" }
-                ]
+                initials: "TO"
               },
               {
                 id: 3,
                 name: "Team Beta",
                 description: "Balanced approach to wellness with diverse challenges",
                 memberCount: 15,
-                rank: 3,
-                challengesCompleted: 32,
-                points: 2100,
-                streak: 5,
                 isMember: false,
-                initials: "TB",
-                topMembers: [
-                  { name: "Sam Wilson", points: 650, initials: "SW" },
-                  { name: "Emma Clark", points: 580, initials: "EC" },
-                  { name: "Ryan Murphy", points: 520, initials: "RM" }
-                ]
+                initials: "TB"
               },
               {
                 id: 4,
                 name: "Team Gamma",
                 description: "Newcomers with a focus on building healthy habits",
                 memberCount: 6,
-                rank: 4,
-                challengesCompleted: 25,
-                points: 1750,
-                streak: 3,
                 isMember: false,
-                initials: "TG",
-                topMembers: [
-                  { name: "Taylor Kim", points: 610, initials: "TK" },
-                  { name: "Chris Evans", points: 540, initials: "CE" },
-                  { name: "Lisa Wong", points: 480, initials: "LW" }
-                ]
+                initials: "TG"
               },
               {
                 id: 5,
                 name: "Team Delta",
                 description: "Competitive team focused on high-intensity challenges",
                 memberCount: 10,
-                rank: 5,
-                challengesCompleted: 22,
-                points: 1680,
-                streak: 2,
                 isMember: false,
-                initials: "TD",
-                topMembers: [
-                  { name: "James Brown", points: 590, initials: "JB" },
-                  { name: "Olivia Martinez", points: 520, initials: "OM" },
-                  { name: "Daniel Lee", points: 470, initials: "DL" }
-                ]
+                initials: "TD"
               },
               {
                 id: 6,
                 name: "Team Epsilon",
                 description: "Senior wellness team with age-appropriate challenges",
                 memberCount: 7,
-                rank: 6,
-                challengesCompleted: 18,
-                points: 1450,
-                streak: 1,
                 isMember: false,
-                initials: "TE",
-                topMembers: [
-                  { name: "Robert Johnson", points: 520, initials: "RJ" },
-                  { name: "Patricia Davis", points: 490, initials: "PD" },
-                  { name: "Thomas Wilson", points: 440, initials: "TW" }
-                ]
+                initials: "TE"
               }
             ];
           } else {
             // Process API response
             teams.value = response.data.map(team => {
-              // Check if user is a member of this team
-              const isMember = userTeams.value.some(ut => ut.id === team.id);
-              
               // Generate initials from team name
               const words = team.name.split(' ');
               const initials = words.length > 1 
@@ -309,7 +226,6 @@ import { useAuthStore } from '../store/auth';
               
               return {
                 ...team,
-                isMember,
                 initials: initials.toUpperCase()
               };
             });
@@ -358,12 +274,7 @@ import { useAuthStore } from '../store/auth';
             ...createdTeam,
             isMember: true,
             memberCount: 1,
-            rank: teams.value.length + 1,
-            challengesCompleted: 0,
-            points: 0,
-            streak: 0,
-            initials: initials.toUpperCase(),
-            topMembers: []
+            initials: initials.toUpperCase()
           });
           
           // Reset form and close modal
@@ -480,6 +391,7 @@ import { useAuthStore } from '../store/auth';
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    padding: 1.5rem;
   }
   
   .team-header {
@@ -511,84 +423,10 @@ import { useAuthStore } from '../store/auth';
     margin-top: 0.25rem;
   }
   
-  .team-rank {
-    font-weight: bold;
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    background: var(--bg-tertiary);
-    font-size: 0.9rem;
-  }
-  
-  .team-rank.top-rank {
-    background: var(--accent-primary);
-    color: #121212;
-  }
-  
-  .team-stats {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem;
-    background: var(--bg-tertiary);
-    border-radius: 8px;
-  }
-  
-  .stat-item {
-    text-align: center;
-  }
-  
-  .stat-label {
-    font-size: 0.85rem;
+  .team-description {
     color: var(--text-secondary);
-    margin-bottom: 0.25rem;
-  }
-  
-  .stat-value {
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
-  
-  .team-members h4 {
-    margin-bottom: 1rem;
-    color: var(--text-secondary);
-    font-weight: 500;
-  }
-  
-  .members-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .member-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem;
-    border-radius: 8px;
-    background: var(--bg-tertiary);
-  }
-  
-  .member-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--bg-card);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: 500;
-  }
-  
-  .member-name {
-    flex: 1;
     font-size: 0.9rem;
-  }
-  
-  .member-points {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--accent-primary);
+    line-height: 1.5;
   }
   
   .team-actions {
@@ -616,6 +454,7 @@ import { useAuthStore } from '../store/auth';
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
+    padding: 1.5rem;
   }
   
   .modal-header {

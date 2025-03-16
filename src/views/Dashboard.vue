@@ -1,11 +1,55 @@
 <template>
-    <div class="dashboard">
-      <div class="dashboard-header">
-        <h1>Welcome Back, {{ userName }}</h1>
-        <div class="date-display">{{ currentDate }}</div>
+    <div class="dashboard-page animate-fade-in">
+      <div class="welcome-section">
+        <div class="welcome-text">
+          <h1>Welcome back, {{ userName }}</h1>
+          <p>Here's an overview of your wellness journey</p>
+        </div>
+        <div class="date-display">
+          <div class="date">{{ currentDate }}</div>
+        </div>
       </div>
       
       <div class="stats-grid">
+        <div class="stat-card card">
+          <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.challengesCompleted }}</div>
+            <div class="stat-label">Challenges Completed</div>
+          </div>
+        </div>
+        
+        <div class="stat-card card">
+          <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.points }}</div>
+            <div class="stat-label">Total Points</div>
+          </div>
+        </div>
+        
+        <div class="stat-card card">
+          <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.activitiesLogged }}</div>
+            <div class="stat-label">Activities Logged</div>
+          </div>
+        </div>
+        
         <div class="stat-card card">
           <div class="stat-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -14,101 +58,62 @@
             </svg>
           </div>
           <div class="stat-content">
-            <h3>Challenges Completed</h3>
-            <div class="stat-value">{{ userStats.challengesCompleted || 0 }}</div>
-          </div>
-        </div>
-        
-        <div class="stat-card card">
-          <div class="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="8" r="7"></circle>
-              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-            </svg>
-          </div>
-          <div class="stat-content">
-            <h3>Total Points</h3>
-            <div class="stat-value">{{ challengeStats.points || 0 }}</div>
-          </div>
-        </div>
-        
-        <div class="stat-card card">
-          <div class="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-          </div>
-          <div class="stat-content">
-            <h3>Team Rank</h3>
-            <div class="stat-value">{{ userStats.teamRank || 'N/A' }}</div>
-          </div>
-        </div>
-        
-        <div class="stat-card card">
-          <div class="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-            </svg>
-          </div>
-          <div class="stat-content">
-            <h3>Current Streak</h3>
-            <div class="stat-value">{{ userStats.currentStreak || 0 }} days</div>
+            <div class="stat-value">{{ stats.currentStreak }}</div>
+            <div class="stat-label">Day Streak</div>
           </div>
         </div>
       </div>
       
       <div class="dashboard-grid">
-        <div class="chart-section card">
+        <div class="activity-chart-container card">
           <div class="card-header">
-            <h2>Activity Progress</h2>
+            <h2>Activity Trends</h2>
             <div class="time-filter">
-              <button :class="{ active: timeFilter === 'week' }" @click="setTimeFilter('week')">Week</button>
-              <button :class="{ active: timeFilter === 'month' }" @click="setTimeFilter('month')">Month</button>
-              <button :class="{ active: timeFilter === 'year' }" @click="setTimeFilter('year')">Year</button>
+              <button 
+                v-for="period in timePeriods" 
+                :key="period.value" 
+                :class="{ active: selectedPeriod === period.value }"
+                @click="selectedPeriod = period.value"
+              >
+                {{ period.label }}
+              </button>
             </div>
           </div>
-          <ActivityChart :chartData="activityChartData" />
+          <ActivityChart :chartData="chartData" />
         </div>
         
-        <div class="leaderboard-section card">
-          <h2>Top Performers</h2>
-          <div class="leaderboard">
-            <div v-for="(user, index) in leaderboard" :key="user.id" class="leaderboard-item">
-              <div class="leaderboard-rank" :class="{ 'top-rank': index < 3 }">{{ index + 1 }}</div>
-              <div class="leaderboard-avatar">{{ user.initials }}</div>
-              <div class="leaderboard-info">
-                <div class="leaderboard-name">{{ user.name }}</div>
-                <div class="leaderboard-team">{{ user.team }}</div>
-              </div>
-              <div class="leaderboard-points">{{ user.points }} pts</div>
-            </div>
+        <div class="active-challenges card">
+          <div class="card-header">
+            <h2>Active Challenges</h2>
+            <router-link to="/challenges" class="view-all">
+              View All
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </router-link>
           </div>
-        </div>
-      </div>
-      
-      <div class="challenges-section">
-        <div class="section-header">
-          <h2>Active Challenges</h2>
-          <router-link to="/challenges" class="view-all">View All</router-link>
-        </div>
-        
-        <div class="challenges-grid">
-          <div v-for="challenge in activeChallenges" :key="challenge.id" class="challenge-card card">
-            <div class="challenge-badge" :class="challenge.category">{{ challenge.category }}</div>
-            <h3>{{ challenge.title }}</h3>
-            <p>{{ challenge.description }}</p>
-            <div class="challenge-meta">
-              <div class="challenge-progress">
+          
+          <div v-if="activeChallenges.length > 0" class="challenges-list">
+            <div v-for="challenge in activeChallenges" :key="challenge.id" class="challenge-item">
+              <div class="challenge-info">
+                <h3>{{ challenge.title }}</h3>
+                <div class="challenge-meta">
+                  <span class="challenge-category" :class="challenge.category">{{ challenge.category }}</span>
+                  <span class="challenge-progress-text">{{ challenge.progress }}% Complete</span>
+                </div>
                 <div class="progress-bar">
                   <div class="progress-fill" :style="{ width: `${challenge.progress}%` }"></div>
                 </div>
-                <div class="progress-text">{{ challenge.progress }}% Complete</div>
               </div>
-              <div class="challenge-points">{{ challenge.points }} pts</div>
+              <button class="secondary log-button" @click="logActivity(challenge.id)">
+                Log
+              </button>
             </div>
+          </div>
+          
+          <div v-else class="no-challenges">
+            <p>You have no active challenges.</p>
+            <router-link to="/challenges" class="primary button">Browse Challenges</router-link>
           </div>
         </div>
       </div>
@@ -118,7 +123,7 @@
   <script>
   import { computed, onMounted, ref } from 'vue';
 import ActivityChart from '../components/ui/ActivityChart.vue';
-import { getChallengeStatistics, getUserChallenges, getUsersLeaderboard, getUserStatistics } from '../services/api';
+import { completeActivity, getUserChallenges, getUserStatistics } from '../services/api';
 import { useAuthStore } from '../store/auth';
   
   export default {
@@ -127,124 +132,145 @@ import { useAuthStore } from '../store/auth';
     setup() {
       const authStore = useAuthStore();
       const userId = computed(() => authStore.user?.id || 1);
-      const userName = computed(() => authStore.user?.full_name || 'User');
+      const userName = computed(() => authStore.user?.full_name?.split(' ')[0] || 'User');
       
-      const userStats = ref({});
-      const challengeStats = ref({});
+      const stats = ref({
+        challengesCompleted: 0,
+        points: 0,
+        activitiesLogged: 0,
+        currentStreak: 0
+      });
+      
       const activeChallenges = ref([]);
-      const leaderboard = ref([]);
-      const timeFilter = ref('week');
+      const selectedPeriod = ref('week');
+      
+      const timePeriods = [
+        { label: 'Week', value: 'week' },
+        { label: 'Month', value: 'month' },
+        { label: 'Year', value: 'year' }
+      ];
       
       const currentDate = computed(() => {
         const now = new Date();
-        return now.toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
+        return now.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
         });
       });
       
-      // Sample chart data - replace with actual API data
-      const activityChartData = ref({
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [
-          {
-            label: 'Activities',
-            data: [5, 8, 3, 10, 7, 12, 6],
-            borderColor: '#bb86fc',
-            backgroundColor: 'rgba(187, 134, 252, 0.2)',
-            tension: 0.4,
-            fill: true
-          },
-          {
-            label: 'Points',
-            data: [20, 35, 15, 45, 30, 55, 25],
-            borderColor: '#03dac6',
-            backgroundColor: 'rgba(3, 218, 198, 0.1)',
-            tension: 0.4,
-            fill: true
-          }
-        ]
-      });
-      
-      const setTimeFilter = (filter) => {
-        timeFilter.value = filter;
-        // Update chart data based on selected time filter
-        // This would typically fetch new data from the API
-        if (filter === 'week') {
-          activityChartData.value.labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        } else if (filter === 'month') {
-          activityChartData.value.labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+      // Chart data based on selected time period
+      const chartData = computed(() => {
+        let labels = [];
+        let data1 = [];
+        let data2 = [];
+        
+        if (selectedPeriod.value === 'week') {
+          labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+          data1 = [5, 8, 12, 4, 9, 6, 10];
+          data2 = [3, 5, 8, 2, 7, 4, 6];
+        } else if (selectedPeriod.value === 'month') {
+          labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+          data1 = [42, 38, 55, 47];
+          data2 = [28, 22, 31, 25];
         } else {
-          activityChartData.value.labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          data1 = [150, 180, 210, 190, 220, 240, 200, 230, 210, 250, 270, 290];
+          data2 = [90, 110, 130, 120, 140, 150, 130, 140, 120, 160, 170, 180];
         }
-      };
+        
+        return {
+          labels,
+          datasets: [
+            {
+              label: 'Activities',
+              data: data1,
+              borderColor: '#bb86fc',
+              tension: 0.4
+            },
+            {
+              label: 'Points',
+              data: data2,
+              borderColor: '#03dac6',
+              tension: 0.4
+            }
+          ]
+        };
+      });
       
       const fetchDashboardData = async () => {
         try {
           // Fetch user statistics
-          const userStatsResponse = await getUserStatistics(userId.value);
-          userStats.value = userStatsResponse.data || {
-            challengesCompleted: 12,
-            teamRank: 3,
-            currentStreak: 5
-          };
+          const statsResponse = await getUserStatistics(userId.value);
+          if (statsResponse.data) {
+            stats.value = statsResponse.data;
+          } else {
+            // Sample data if API returns empty
+            stats.value = {
+              challengesCompleted: 12,
+              points: 450,
+              activitiesLogged: 28,
+              currentStreak: 5
+            };
+          }
           
-          // Fetch challenge statistics
-          const challengeStatsResponse = await getChallengeStatistics(1);
-          challengeStats.value = challengeStatsResponse.data || {
-            points: 450
-          };
-          
-          // Fetch active challenges
-          const userChallengesResponse = await getUserChallenges(userId.value);
-          activeChallenges.value = userChallengesResponse.data || [
-            {
-              id: 1,
-              title: "10,000 Steps Challenge",
-              description: "Walk 10,000 steps every day for a week",
-              category: "fitness",
-              progress: 65,
-              points: 100
-            },
-            {
-              id: 2,
-              title: "Meditation Master",
-              description: "Meditate for 10 minutes daily",
-              category: "mindfulness",
-              progress: 30,
-              points: 75
-            },
-            {
-              id: 3,
-              title: "Hydration Hero",
-              description: "Drink 8 glasses of water daily",
-              category: "nutrition",
-              progress: 90,
-              points: 50
-            },
-            {
-              id: 4,
-              title: "Sleep Well",
-              description: "Get 8 hours of sleep for 5 consecutive nights",
-              category: "wellness",
-              progress: 40,
-              points: 80
-            }
-          ];
-          
-          // Fetch leaderboard
-          const leaderboardResponse = await getUsersLeaderboard(5);
-          leaderboard.value = leaderboardResponse.data || [
-            { id: 1, name: "Jane Smith", team: "Team Alpha", points: 780, initials: "JS" },
-            { id: 2, name: "John Doe", team: "Team Omega", points: 720, initials: "JD" },
-            { id: 3, name: "Alex Johnson", team: "Team Alpha", points: 695, initials: "AJ" },
-            { id: 4, name: "Sam Wilson", team: "Team Beta", points: 650, initials: "SW" },
-            { id: 5, name: "Taylor Kim", team: "Team Gamma", points: 610, initials: "TK" }
-          ];
+          // Fetch user challenges
+          const challengesResponse = await getUserChallenges(userId.value);
+          if (challengesResponse.data && challengesResponse.data.length > 0) {
+            // Filter only active challenges (progress < 100%)
+            activeChallenges.value = challengesResponse.data
+              .filter(challenge => challenge.progress < 100)
+              .slice(0, 3); // Show only top 3
+          } else {
+            // Sample data if API returns empty
+            activeChallenges.value = [
+              {
+                id: 1,
+                title: "10,000 Steps Challenge",
+                category: "fitness",
+                progress: 65
+              },
+              {
+                id: 2,
+                title: "Meditation Master",
+                category: "mindfulness",
+                progress: 30
+              },
+              {
+                id: 3,
+                title: "Hydration Hero",
+                category: "nutrition",
+                progress: 90
+              }
+            ];
+          }
         } catch (error) {
           console.error('Error fetching dashboard data:', error);
+        }
+      };
+      
+      const logActivity = async (challengeId) => {
+        try {
+          await completeActivity(challengeId, userId.value);
+          
+          // Update local state
+          const challenge = activeChallenges.value.find(c => c.id === challengeId);
+          if (challenge) {
+            challenge.progress += 10; // Increment progress by 10%
+            if (challenge.progress > 100) challenge.progress = 100;
+            
+            // If challenge is now complete, remove it from active challenges
+            if (challenge.progress === 100) {
+              activeChallenges.value = activeChallenges.value.filter(c => c.id !== challengeId);
+              stats.value.challengesCompleted++;
+            }
+            
+            stats.value.activitiesLogged++;
+            stats.value.points += 10; // Assume 10 points per activity
+          }
+        } catch (error) {
+          console.error('Error logging activity:', error);
         }
       };
       
@@ -255,71 +281,93 @@ import { useAuthStore } from '../store/auth';
       return {
         userName,
         currentDate,
-        userStats,
-        challengeStats,
+        stats,
         activeChallenges,
-        leaderboard,
-        activityChartData,
-        timeFilter,
-        setTimeFilter
+        chartData,
+        timePeriods,
+        selectedPeriod,
+        logActivity
       };
     }
   };
   </script>
   
   <style scoped>
-  .dashboard {
+  .dashboard-page {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
   }
   
-  .dashboard-header {
+  .welcome-section {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .welcome-text h1 {
+    margin-bottom: 0.25rem;
+    background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .welcome-text p {
+    color: var(--text-secondary);
+    margin-bottom: 0;
   }
   
   .date-display {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    font-weight: 500;
   }
   
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
   
   .stat-card {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
+    padding: 1.25rem;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
   }
   
   .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background: rgba(187, 134, 252, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: var(--bg-tertiary);
     color: var(--accent-primary);
+    margin-right: 1rem;
   }
   
   .stat-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    flex: 1;
   }
   
   .stat-value {
     font-size: 1.75rem;
     font-weight: 600;
-    color: var(--text-primary);
+    line-height: 1.2;
+  }
+  
+  .stat-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
   }
   
   .dashboard-grid {
@@ -328,15 +376,11 @@ import { useAuthStore } from '../store/auth';
     gap: 1.5rem;
   }
   
-  .chart-section, .leaderboard-section {
-    padding: 1.5rem;
-  }
-  
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    padding: 1.25rem 1.25rem 0;
   }
   
   .time-filter {
@@ -345,171 +389,139 @@ import { useAuthStore } from '../store/auth';
   }
   
   .time-filter button {
-    background: var(--bg-tertiary);
+    background: transparent;
     border: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
     color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  
+  .time-filter button:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
   }
   
   .time-filter button.active {
-    background: var(--accent-primary);
-    color: #121212;
-  }
-  
-  .leaderboard {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .leaderboard-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
-    border-radius: 8px;
-    background: var(--bg-tertiary);
-  }
-  
-  .leaderboard-rank {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: var(--bg-card);
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-  
-  .leaderboard-rank.top-rank {
-    background: var(--accent-primary);
-    color: #121212;
-  }
-  
-  .leaderboard-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--bg-card);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500;
-  }
-  
-  .leaderboard-info {
-    flex: 1;
-  }
-  
-  .leaderboard-name {
-    font-weight: 500;
-  }
-  
-  .leaderboard-team {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-  }
-  
-  .leaderboard-points {
-    font-weight: 600;
+    background: rgba(187, 134, 252, 0.1);
     color: var(--accent-primary);
   }
   
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+  .activity-chart-container {
+    padding-bottom: 1.25rem;
   }
   
   .view-all {
-    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--accent-primary);
+    font-size: 0.875rem;
+    text-decoration: none;
   }
   
-  .challenges-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
+  .challenges-list {
+    padding: 0 1.25rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
   }
   
-  .challenge-card {
-    position: relative;
-    padding: 1.5rem;
+  .challenge-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-fast);
   }
   
-  .challenge-badge {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
+  .challenge-item:hover {
+    transform: translateX(5px);
+  }
+  
+  .challenge-info {
+    flex: 1;
+  }
+  
+  .challenge-info h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .challenge-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .challenge-category {
     font-size: 0.75rem;
     font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-full);
     text-transform: uppercase;
   }
   
-  .challenge-badge.fitness {
+  .challenge-category.fitness {
     background: var(--accent-primary);
     color: #121212;
   }
   
-  .challenge-badge.mindfulness {
+  .challenge-category.mindfulness {
     background: #03dac6;
     color: #121212;
   }
   
-  .challenge-badge.nutrition {
+  .challenge-category.nutrition {
     background: #ff7597;
     color: #121212;
   }
   
-  .challenge-badge.wellness {
+  .challenge-category.wellness {
     background: #ffb74d;
     color: #121212;
   }
   
-  .challenge-meta {
-    margin-top: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .challenge-progress {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  .challenge-progress-text {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
   }
   
   .progress-bar {
-    height: 8px;
-    background: var(--bg-tertiary);
-    border-radius: 4px;
+    height: 4px;
+    background: var(--bg-card);
+    border-radius: var(--radius-full);
     overflow: hidden;
   }
   
   .progress-fill {
     height: 100%;
     background: var(--accent-primary);
-    border-radius: 4px;
+    border-radius: var(--radius-full);
   }
   
-  .progress-text {
-    font-size: 0.85rem;
+  .log-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .no-challenges {
+    padding: 2rem 1.25rem;
+    text-align: center;
     color: var(--text-secondary);
   }
   
-  .challenge-points {
-    font-weight: 600;
-    color: var(--accent-primary);
-    align-self: flex-end;
+  .no-challenges .button {
+    margin-top: 1rem;
   }
   
-  @media (max-width: 1200px) {
+  @media (max-width: 1024px) {
     .stats-grid {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -520,6 +532,18 @@ import { useAuthStore } from '../store/auth';
   }
   
   @media (max-width: 768px) {
+    .welcome-section {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    .date-display {
+      align-self: flex-start;
+    }
+  }
+  
+  @media (max-width: 480px) {
     .stats-grid {
       grid-template-columns: 1fr;
     }

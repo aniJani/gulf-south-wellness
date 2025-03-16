@@ -1,128 +1,142 @@
 <template>
-    <aside class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
+    <aside class="sidebar" :class="{ 'collapsed': isCollapsed }">
       <div class="sidebar-header">
         <div class="logo">
           <div class="logo-icon">GS</div>
-          <h2 v-if="!isCollapsed">Gulf South</h2>
+          <h1 class="logo-text">Gulf South</h1>
         </div>
-        <button class="collapse-btn" @click="toggleSidebar">
+        <button class="collapse-button" @click="toggleSidebar">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path v-if="isCollapsed" d="M13 17l5-5-5-5M6 17l5-5-5-5"></path>
-            <path v-else d="M11 17l-5-5 5-5M18 17l-5-5 5-5"></path>
+            <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
       </div>
       
-      <nav class="sidebar-nav">
-        <ul>
-          <li>
-            <router-link to="/" class="nav-link">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-              <span v-if="!isCollapsed">Dashboard</span>
-            </router-link>
-          </li>
-          <li>
-            <router-link to="/challenges" class="nav-link">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                <path d="M2 17l10 5 10-5"></path>
-                <path d="M2 12l10 5 10-5"></path>
-              </svg>
-              <span v-if="!isCollapsed">Challenges</span>
-            </router-link>
-          </li>
-          <li>
-            <router-link to="/teams" class="nav-link">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              <span v-if="!isCollapsed">Teams</span>
-            </router-link>
-          </li>
-          <li>
-            <router-link to="/profile" class="nav-link">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-              <span v-if="!isCollapsed">Profile</span>
-            </router-link>
-          </li>
-        </ul>
-      </nav>
+      <div class="sidebar-content">
+        <nav class="sidebar-nav">
+          <router-link to="/dashboard" class="nav-item" active-class="active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span class="nav-text">Dashboard</span>
+          </router-link>
+          
+          <router-link to="/challenges" class="nav-item" active-class="active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
+            <span class="nav-text">Challenges</span>
+          </router-link>
+          
+          <router-link to="/teams" class="nav-item" active-class="active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span class="nav-text">Teams</span>
+          </router-link>
+          
+          <router-link to="/profile" class="nav-item" active-class="active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span class="nav-text">Profile</span>
+          </router-link>
+        </nav>
+      </div>
       
       <div class="sidebar-footer">
-        <button class="logout-btn" @click="logout">
+        <div class="theme-toggle">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
-          <span v-if="!isCollapsed">Logout</span>
-        </button>
+          <span class="nav-text">Dark Mode</span>
+        </div>
       </div>
     </aside>
   </template>
-    
+  
   <script>
-  import { ref } from 'vue';
-import { useAuthStore } from '../../store/auth';
+  import { onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
   
   export default {
     name: 'Sidebar',
     setup() {
-      const authStore = useAuthStore();
       const isCollapsed = ref(false);
+      const route = useRoute();
       
       const toggleSidebar = () => {
         isCollapsed.value = !isCollapsed.value;
+        document.body.classList.toggle('sidebar-collapsed', isCollapsed.value);
+        
+        // Save preference to localStorage
         localStorage.setItem('sidebarCollapsed', isCollapsed.value);
       };
       
-      const logout = () => {
-        authStore.logout();
-        window.location.href = '/auth';
+      // Close sidebar on mobile when route changes
+      watch(() => route.path, () => {
+        if (window.innerWidth < 768) {
+          isCollapsed.value = true;
+          document.body.classList.add('sidebar-collapsed');
+        }
+      });
+      
+      onMounted(() => {
+        // Check saved preference
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState === 'true') {
+          isCollapsed.value = true;
+          document.body.classList.add('sidebar-collapsed');
+        }
+        
+        // Auto-collapse on mobile
+        if (window.innerWidth < 768) {
+          isCollapsed.value = true;
+          document.body.classList.add('sidebar-collapsed');
+        }
+      });
+      
+      return {
+        isCollapsed,
+        toggleSidebar
       };
-      
-      // Check if sidebar was collapsed in previous session
-      if (localStorage.getItem('sidebarCollapsed') === 'true') {
-        isCollapsed.value = true;
-      }
-      
-      return { logout, isCollapsed, toggleSidebar };
     }
   };
   </script>
-    
+  
   <style scoped>
   .sidebar {
-    width: 250px;
-    background: var(--bg-secondary);
+    width: 260px;
+    height: 100vh;
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    transition: width 0.3s ease;
-    overflow: hidden;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-    z-index: 10;
+    position: sticky;
+    top: 0;
+    transition: all var(--transition-normal);
+    z-index: 20;
   }
   
-  .sidebar-collapsed {
+  .sidebar.collapsed {
     width: 70px;
   }
   
   .sidebar-header {
-    padding: 1.5rem 1rem;
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 0 1rem;
     border-bottom: 1px solid var(--border-color);
   }
   
@@ -130,74 +144,112 @@ import { useAuthStore } from '../../store/auth';
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    overflow: hidden;
   }
   
   .logo-icon {
     width: 36px;
     height: 36px;
+    border-radius: var(--radius-md);
     background: var(--accent-primary);
     color: #121212;
-    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    font-size: 1rem;
+    flex-shrink: 0;
   }
   
-  .logo h2 {
-    margin: 0;
+  .logo-text {
     font-size: 1.25rem;
+    font-weight: 600;
     white-space: nowrap;
+    transition: opacity var(--transition-normal);
   }
   
-  .collapse-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 0.25rem;
+  .collapsed .logo-text {
+    opacity: 0;
+    width: 0;
+  }
+  
+  .collapse-button {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
   }
   
-  .collapse-btn:hover {
+  .collapse-button:hover {
+    background-color: var(--bg-tertiary);
     color: var(--text-primary);
-    background: transparent;
+  }
+  
+  .collapsed .collapse-button svg {
+    transform: rotate(180deg);
+  }
+  
+  .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 0;
   }
   
   .sidebar-nav {
-    flex: 1;
-    padding: 1.5rem 0;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
   
-  .sidebar-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .nav-link {
+  .nav-item {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1rem;
     color: var(--text-secondary);
-    transition: all 0.2s ease;
-    border-left: 3px solid transparent;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    margin: 0 0.5rem;
+    transition: all var(--transition-fast);
+    position: relative;
   }
   
-  .nav-link:hover, .nav-link.router-link-active {
+  .nav-item:hover {
+    background-color: var(--bg-tertiary);
     color: var(--text-primary);
-    background: var(--bg-tertiary);
-    border-left-color: var(--accent-primary);
   }
   
-  .sidebar-collapsed .nav-link {
-    justify-content: center;
-    padding: 0.75rem;
+  .nav-item.active {
+    background-color: rgba(187, 134, 252, 0.15);
+    color: var(--accent-primary);
+  }
+  
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background-color: var(--accent-primary);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  
+  .nav-text {
+    white-space: nowrap;
+    transition: opacity var(--transition-normal);
+  }
+  
+  .collapsed .nav-text {
+    opacity: 0;
+    width: 0;
   }
   
   .sidebar-footer {
@@ -205,26 +257,32 @@ import { useAuthStore } from '../../store/auth';
     border-top: 1px solid var(--border-color);
   }
   
-  .logout-btn {
+  .theme-toggle {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    width: 100%;
     padding: 0.75rem;
-    background: transparent;
     color: var(--text-secondary);
-    border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-fast);
   }
   
-  .sidebar-collapsed .logout-btn {
-    justify-content: center;
+  .theme-toggle:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
   }
   
-  .logout-btn:hover {
-    background: var(--bg-tertiary);
-    color: var(--accent-warning);
+  @media (max-width: 768px) {
+    .sidebar {
+      position: fixed;
+      left: 0;
+      transform: translateX(0);
+      box-shadow: 0 0 15px var(--shadow-color);
+    }
+    
+    .sidebar.collapsed {
+      transform: translateX(-100%);
+    }
   }
   </style>

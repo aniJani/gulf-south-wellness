@@ -1,5 +1,5 @@
 <template>
-    <div class="profile-page">
+    <div class="profile-page animate-fade-in">
       <div class="profile-header">
         <div class="profile-cover"></div>
         <div class="profile-info">
@@ -32,10 +32,6 @@
               <div class="field-label">Member Since</div>
               <div class="field-value">{{ formattedJoinDate }}</div>
             </div>
-            <div class="profile-field">
-              <div class="field-label">Team</div>
-              <div class="field-value">{{ userTeam || 'No Team' }}</div>
-            </div>
           </div>
           
           <div class="stats-card card">
@@ -57,26 +53,6 @@
                 <div class="stat-value">{{ userStats.currentStreak || 0 }}</div>
                 <div class="stat-label">Streak</div>
               </div>
-            </div>
-          </div>
-          
-          <div class="badges-card card">
-            <h3>Badges</h3>
-            <div v-if="userBadges.length > 0" class="badges-grid">
-              <div v-for="badge in userBadges" :key="badge.id" class="badge-item">
-                <div class="badge-icon" :style="{ backgroundColor: badge.color }">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 15l-2 5l9-9l-9-9l2 5l-9 4l9 4z"></path>
-                  </svg>
-                </div>
-                <div class="badge-info">
-                  <div class="badge-name">{{ badge.name }}</div>
-                  <div class="badge-description">{{ badge.description }}</div>
-                </div>
-              </div>
-            </div>
-            <div v-else class="no-badges">
-              <p>Complete challenges to earn badges!</p>
             </div>
           </div>
         </div>
@@ -208,7 +184,7 @@
   
   <script>
   import { computed, onMounted, reactive, ref } from 'vue';
-import { getActivitiesByUser, getUserChallenges, getUserProfile, getUserStatistics, updateUserProfile } from '../services/api';
+import { completeActivity, getActivitiesByUser, getUserChallenges, getUserProfile, getUserStatistics, updateUserProfile } from '../services/api';
 import { useAuthStore } from '../store/auth';
   
   export default {
@@ -221,8 +197,6 @@ import { useAuthStore } from '../store/auth';
       const userStats = ref({});
       const userActivities = ref([]);
       const userChallenges = ref([]);
-      const userBadges = ref([]);
-      const userTeam = ref('');
       const isEditing = ref(false);
       const challengesTab = ref('active');
       
@@ -286,8 +260,7 @@ import { useAuthStore } from '../store/auth';
             challengesCompleted: 12,
             points: 450,
             activitiesLogged: 28,
-            currentStreak: 5,
-            teamRank: 3
+            currentStreak: 5
           };
           
           // Fetch user activities
@@ -369,31 +342,6 @@ import { useAuthStore } from '../store/auth';
               progress: 100
             }
           ];
-          
-          // Sample badges data
-          userBadges.value = [
-            {
-              id: 1,
-              name: "Early Bird",
-              description: "Completed 5 morning activities",
-              color: "#bb86fc"
-            },
-            {
-              id: 2,
-              name: "Hydration Master",
-              description: "Completed the Hydration Challenge",
-              color: "#03dac6"
-            },
-            {
-              id: 3,
-              name: "Team Player",
-              description: "Joined a team and completed 3 team challenges",
-              color: "#ff7597"
-            }
-          ];
-          
-          // Set user team
-          userTeam.value = "Team Alpha";
         } catch (error) {
           console.error('Error fetching profile data:', error);
         }
@@ -423,9 +371,36 @@ import { useAuthStore } from '../store/auth';
         }
       };
       
-      const logActivity = (challengeId) => {
-        // In a real app, this would open a modal to log activity details
-        console.log('Log activity for challenge ID:', challengeId);
+      const logActivity = async (challengeId) => {
+        try {
+          await completeActivity(challengeId, userId.value);
+          
+          // Update local state
+          const challenge = userChallenges.value.find(c => c.id === challengeId);
+          if (challenge) {
+            challenge.progress += 10; // Increment progress by 10%
+            if (challenge.progress > 100) challenge.progress = 100;
+            
+            // If challenge is now complete, update stats
+            if (challenge.progress === 100) {
+              userStats.value.challengesCompleted++;
+            }
+            
+            userStats.value.activitiesLogged++;
+            userStats.value.points += 10; // Assume 10 points per activity
+            
+            // Add new activity to timeline
+            userActivities.value.unshift({
+              id: Date.now(),
+              type: 'activity',
+              title: 'Activity Logged',
+              description: `Logged activity for ${challenge.title}`,
+              date: 'Just now'
+            });
+          }
+        } catch (error) {
+          console.error('Error logging activity:', error);
+        }
       };
       
       onMounted(() => {
@@ -437,8 +412,6 @@ import { useAuthStore } from '../store/auth';
         userStats,
         userActivities,
         userChallenges,
-        userBadges,
-        userTeam,
         userInitials,
         formattedJoinDate,
         isEditing,
@@ -461,7 +434,7 @@ import { useAuthStore } from '../store/auth';
   
   .profile-header {
     position: relative;
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
     background: var(--bg-card);
     box-shadow: 0 4px 6px var(--shadow-color);
@@ -522,7 +495,7 @@ import { useAuthStore } from '../store/auth';
     gap: 1.5rem;
   }
   
-  .profile-card, .stats-card, .badges-card {
+  .profile-card, .stats-card {
     padding: 1.5rem;
   }
   
@@ -551,7 +524,7 @@ import { useAuthStore } from '../store/auth';
     text-align: center;
     padding: 1rem;
     background: var(--bg-tertiary);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
   }
   
   .stat-value {
@@ -564,48 +537,6 @@ import { useAuthStore } from '../store/auth';
     font-size: 0.85rem;
     color: var(--text-secondary);
     margin-top: 0.25rem;
-  }
-  
-  .badges-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  
-  .badge-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
-    background: var(--bg-tertiary);
-    border-radius: 8px;
-  }
-  
-  .badge-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #121212;
-  }
-  
-  .badge-name {
-    font-weight: 500;
-  }
-  
-  .badge-description {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-top: 0.25rem;
-  }
-  
-  .no-badges {
-    text-align: center;
-    padding: 2rem 0;
-    color: var(--text-secondary);
   }
   
   .profile-main {
@@ -728,7 +659,7 @@ import { useAuthStore } from '../store/auth';
     justify-content: space-between;
     padding: 1rem;
     background: var(--bg-tertiary);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
   }
   
   .challenge-info {
@@ -746,7 +677,7 @@ import { useAuthStore } from '../store/auth';
     font-size: 0.75rem;
     font-weight: 600;
     padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
+    border-radius: var(--radius-full);
     text-transform: uppercase;
   }
   
@@ -790,6 +721,7 @@ import { useAuthStore } from '../store/auth';
     height: 100%;
     background: var(--accent-primary);
     border-radius: 3px;
+    transition: width 0.3s ease;
   }
   
   .progress-text {
@@ -813,7 +745,13 @@ import { useAuthStore } from '../store/auth';
     margin-top: 1rem;
     padding: 0.5rem 1rem;
     background: var(--bg-tertiary);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
+    transition: background-color var(--transition-fast);
+  }
+  
+  .view-challenges-btn:hover {
+    background: var(--bg-card-hover);
+    text-decoration: none;
   }
   
   .modal-overlay {
@@ -828,6 +766,7 @@ import { useAuthStore } from '../store/auth';
     justify-content: center;
     z-index: 100;
     padding: 1rem;
+    animation: fadeIn 0.2s ease;
   }
   
   .modal-content {
@@ -835,6 +774,8 @@ import { useAuthStore } from '../store/auth';
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
+    padding: 1.5rem;
+    animation: slideUp 0.3s ease;
   }
   
   .modal-header {
