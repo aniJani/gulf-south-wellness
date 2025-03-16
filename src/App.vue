@@ -1,16 +1,10 @@
 <template>
-  <div class="app-container">
-    <MainLayout />
-  </div>
+  <router-view />
 </template>
 
 <script>
-import MainLayout from './components/layout/MainLayout.vue';
-import './style.css'; // Make sure styles are imported
-
 export default {
-  name: 'App',
-  components: { MainLayout }
+  name: 'App'
 }
 </script>
 

@@ -1,17 +1,45 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../store/auth'
-import Auth from '../views/Auth.vue'
-import Challenges from '../views/Challenges.vue'
-import Dashboard from '../views/Dashboard.vue'
-import Profile from '../views/Profile.vue'
-import Teams from '../views/Teams.vue'
 
 const routes = [
-    { path: '/auth', name: 'Auth', component: Auth },
-    { path: '/', name: 'Dashboard', component: Dashboard, meta: { requiresAuth: true } },
-    { path: '/challenges', name: 'Challenges', component: Challenges, meta: { requiresAuth: true } },
-    { path: '/teams', name: 'Teams', component: Teams, meta: { requiresAuth: true } },
-    { path: '/profile', name: 'Profile', component: Profile, meta: { requiresAuth: true } }
+    {
+        path: '/auth',
+        component: () => import('../components/layout/AuthLayout.vue'),
+        children: [
+            {
+                path: '',
+                name: 'Auth',
+                component: () => import('../views/Auth.vue')
+            }
+        ]
+    },
+    {
+        path: '/',
+        component: () => import('../components/layout/MainLayout.vue'),
+        meta: { requiresAuth: true },
+        children: [
+            {
+                path: '',
+                name: 'Dashboard',
+                component: () => import('../views/Dashboard.vue')
+            },
+            {
+                path: 'challenges',
+                name: 'Challenges',
+                component: () => import('../views/Challenges.vue')
+            },
+            {
+                path: 'teams',
+                name: 'Teams',
+                component: () => import('../views/Teams.vue')
+            },
+            {
+                path: 'profile',
+                name: 'Profile',
+                component: () => import('../views/Profile.vue')
+            }
+        ]
+    }
 ]
 
 const router = createRouter({
@@ -22,7 +50,8 @@ const router = createRouter({
 // Navigation guard to protect routes
 router.beforeEach((to, from, next) => {
     const authStore = useAuthStore()
-    if (to.meta.requiresAuth && !authStore.user) {
+
+    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
         next({ name: 'Auth' })
     } else {
         next()

@@ -116,31 +116,12 @@
             {{ isLogin ? 'Login' : 'Sign Up' }}
           </button>
         </form>
-        
-        <div class="auth-divider">
-          <span>OR</span>
-        </div>
-        
-        <div class="social-auth">
-          <button class="social-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-            </svg>
-            Continue with Facebook
-          </button>
-          <button class="social-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-            </svg>
-            Continue with GitHub
-          </button>
-        </div>
       </div>
     </div>
   </template>
-  
-  <script>
-  import { reactive, ref } from 'vue';
+
+<script>
+import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createUser, loginUser } from '../services/api';
 import { useAuthStore } from '../store/auth';
@@ -152,6 +133,7 @@ import { useAuthStore } from '../store/auth';
       const router = useRouter();
       const isLogin = ref(true);
       const showPassword = ref(false);
+      const errorMessage = ref('');
       
       const formData = reactive({
         username: '',
@@ -178,7 +160,7 @@ import { useAuthStore } from '../store/auth';
           }
         } catch (error) {
           console.error('Authentication error:', error);
-          // In a real app, you would handle errors and show user feedback
+          errorMessage.value = error.response?.data?.message || 'Authentication failed. Please try again.';
         }
       };
       
@@ -186,7 +168,8 @@ import { useAuthStore } from '../store/auth';
         isLogin,
         formData,
         showPassword,
-        submitForm
+        submitForm,
+        errorMessage
       };
     }
   };

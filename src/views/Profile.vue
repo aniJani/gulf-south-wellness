@@ -49,10 +49,6 @@
                 <div class="stat-value">{{ userStats.activitiesLogged || 0 }}</div>
                 <div class="stat-label">Activities</div>
               </div>
-              <div class="stat-item">
-                <div class="stat-value">{{ userStats.currentStreak || 0 }}</div>
-                <div class="stat-label">Streak</div>
-              </div>
             </div>
           </div>
         </div>
