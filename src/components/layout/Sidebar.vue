@@ -49,7 +49,6 @@
           <span class="nav-text">Profile</span>
         </router-link>
         
-        <!-- Theme toggle button styled like other nav items -->
         <div class="nav-item" @click="toggleTheme">
           <svg v-if="isDarkMode" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="5"/>
@@ -70,7 +69,6 @@
       </nav>
     </div>
     
-    <!-- Improved logout button in sidebar footer -->
     <div class="sidebar-footer">
       <div class="nav-item logout-button" @click="handleLogout">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -102,7 +100,7 @@ export default {
       isCollapsed.value = !isCollapsed.value;
       document.body.classList.toggle('sidebar-collapsed', isCollapsed.value);
       
-      // Save preference to localStorage
+      // Save to localStorage
       localStorage.setItem('sidebarCollapsed', isCollapsed.value);
     };
     
@@ -117,7 +115,6 @@ export default {
       localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light');
     };
     
-    // Close sidebar on mobile when route changes
     watch(() => route.path, () => {
       if (window.innerWidth < 768) {
         isCollapsed.value = true;
@@ -133,7 +130,6 @@ export default {
         document.body.classList.add('sidebar-collapsed');
       }
       
-      // Auto-collapse on mobile
       if (window.innerWidth < 768) {
         isCollapsed.value = true;
         document.body.classList.add('sidebar-collapsed');
@@ -229,9 +225,9 @@ export default {
   align-items: center;
   justify-content: center;
   background-color: var(--accent-primary);
-  color: #000000; /* Black text for better visibility */
-  font-weight: 600; /* Make it bold */
-  font-size: 16px; /* Larger font size */
+  color: #000000; 
+  font-weight: 600;
+  font-size: 16px; 
   border: none;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -247,7 +243,7 @@ export default {
 
 .collapse-button:hover {
   background-color: var(--accent-primary-hover, #bb86fc);
-  color: #ffffff; /* White text on hover */
+  color: #ffffff;
 }
 
 .collapsed .collapse-button {
@@ -324,7 +320,7 @@ export default {
 .sidebar-footer {
   border-top: 1px solid var(--border-color);
   margin-top: auto;
-  padding: 0.5rem 0; /* Reduced padding */
+  padding: 0.5rem 0;
 }
 
 .logout-button {
@@ -335,7 +331,7 @@ export default {
   color: var(--text-secondary);
   cursor: pointer;
   border-radius: var(--radius-md);
-  margin: 0.25rem 0.5rem; /* Adjusted margins */
+  margin: 0.25rem 0.5rem;
   transition: all var(--transition-fast);
   white-space: nowrap;
 }
@@ -351,7 +347,6 @@ export default {
   flex-shrink: 0;
 }
 
-/* Ensure proper centering in collapsed mode */
 .collapsed .logout-button {
   justify-content: center;
   padding-left: 0;
@@ -371,7 +366,7 @@ export default {
 }
 
 .theme-toggle .nav-icon {
-  display: none; /* This is no longer needed */
+  display: none;
 }
 
 .nav-item:hover svg {

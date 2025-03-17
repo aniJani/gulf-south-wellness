@@ -22,10 +22,10 @@ import { onMounted, ref, watch } from 'vue'
         chartInstance = new Chart(chartCanvas.value, {
           type: 'line',
           data: {
-            labels: props.chartData.labels, // e.g., dates
+            labels: props.chartData.labels,
             datasets: [{
               label: 'Challenges Completed',
-              data: props.chartData.data, // e.g., counts
+              data: props.chartData.data,
               borderColor: 'rgba(75,192,192,1)',
               backgroundColor: 'rgba(75,192,192,0.2)',
               fill: true

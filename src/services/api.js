@@ -7,7 +7,6 @@ export const createChallenge = (challengeData) =>
 export const getChallenges = (params = {}) =>
     apiClient.get('/challenges/', { params })
 
-// Complete a challenge (new endpoint)
 export const completeChallenge = (challengeId, userId) =>
     apiClient.post(`/challenges/${challengeId}/complete`, null, { params: { user_id: userId } })
 

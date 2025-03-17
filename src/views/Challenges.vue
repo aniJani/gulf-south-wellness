@@ -2,12 +2,10 @@
     <div class="challenges-page animate-fade-in">
       <div class="page-header">
         <h1>Challenges & Activities</h1>
-        <!-- Toggle between Challenges and Activities view -->
         <div class="view-toggle">
           <button :class="{ active: contentView === 'challenges' }" @click="contentView = 'challenges'">Challenges</button>
           <button :class="{ active: contentView === 'activities' }" @click="contentView = 'activities'">Activities</button>
         </div>
-        <!-- Header actions differ by view -->
         <div v-if="contentView === 'challenges'" class="header-actions">
           <div class="search-container">
             <input type="text" placeholder="Search challenges..." v-model="searchQuery" class="search-input" />
@@ -36,14 +34,12 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </div>
-          <!-- Create Activity Button -->
           <button class="primary create-activity-btn" @click="showCreateActivityModal = true">
             Create Activity
           </button>
         </div>
       </div>
       
-      <!-- Challenges view -->
       <div v-if="contentView === 'challenges'">
         <div class="tabs">
           <button :class="{ active: activeTab === 'all' }" @click="activeTab = 'all'">All Challenges</button>
@@ -95,7 +91,6 @@
         </div>
       </div>
       
-      <!-- Activities view -->
       <div v-else-if="contentView === 'activities'">
         <div class="activities-grid">
           <div v-for="activity in filteredActivities" :key="activity.id" class="activity-card card">
@@ -125,7 +120,6 @@
         </div>
       </div>
       
-      <!-- Create Activity Modal -->
       <div v-if="showCreateActivityModal" class="modal-overlay" @click="showCreateActivityModal = false">
         <div class="modal-content card" @click.stop>
           <div class="modal-header">
@@ -185,10 +179,9 @@ import { useAuthStore } from '../store/auth';
       const authStore = useAuthStore();
       const userId = computed(() => authStore.user?.id || 1);
       
-      // Main view toggle: "challenges" or "activities"
+      // Main view toggle challenges or activities
       const contentView = ref('challenges');
       
-      // Arrays for challenges:
       // allChallenges: challenges from public endpoint
       const allChallenges = ref([]);
       // userActiveChallenges: joined challenges that are still active
@@ -196,7 +189,6 @@ import { useAuthStore } from '../store/auth';
       // userCompletedChallenges: joined challenges that are completed
       const userCompletedChallenges = ref([]);
       
-      // Tab filtering:
       // "all" shows public challenges that are NOT joined
       // "active" shows userActiveChallenges
       // "completed" shows userCompletedChallenges
@@ -219,7 +211,6 @@ import { useAuthStore } from '../store/auth';
           list = userCompletedChallenges.value;
         }
         
-        // Search and category filtering remain the same
         if (searchQuery.value) {
           const query = searchQuery.value.toLowerCase();
           list = list.filter(challenge =>
@@ -233,7 +224,6 @@ import { useAuthStore } from '../store/auth';
         return list;
       });
       
-      // Activities data and filtering
       const activities = ref([]);
       const filteredActivities = computed(() => {
         let filtered = [...activities.value];
@@ -250,7 +240,6 @@ import { useAuthStore } from '../store/auth';
       const searchQuery = ref('');
       const categoryFilter = ref('');
       
-      // Helper to compute challenge duration from start_date and end_date
       const getChallengeDuration = (challenge) => {
         if (challenge.start_date && challenge.end_date) {
           const start = new Date(challenge.start_date);
@@ -269,20 +258,16 @@ import { useAuthStore } from '../store/auth';
           // Find the challenge in allChallenges
           const challenge = allChallenges.value.find(c => c.id === challengeId);
           if (challenge) {
-            // Mark as joined in the all challenges view
             challenge.joined = true;
             challenge.is_active = true;
             
-            // Create a new object to add to userActiveChallenges
-            // This ensures the challenge appears immediately in "My Active Challenges"
             const newActiveChallenge = {
               ...challenge,
-              joined: true, // Make sure joined is explicitly set to true
-              is_active: true, // Make sure is_active is set to true
-              progress: 0 // Initialize progress for newly joined challenge
+              joined: true, 
+              is_active: true,
+              progress: 0 
             };
             
-            // Add to active challenges
             userActiveChallenges.value.push(newActiveChallenge);
           }
         } catch (error) {
@@ -293,7 +278,7 @@ import { useAuthStore } from '../store/auth';
       const handleCompleteChallenge = async (challengeId) => {
         try {
           const result = await completeChallenge(challengeId, userId.value);
-          console.log(result.message); // "Challenge completed successfully"
+          console.log(result.message);
           
           // Find the challenge in active challenges
           const challengeIndex = userActiveChallenges.value.findIndex(c => c.id === challengeId);
@@ -302,13 +287,11 @@ import { useAuthStore } from '../store/auth';
             const completedChallenge = userActiveChallenges.value[challengeIndex];
             userActiveChallenges.value.splice(challengeIndex, 1);
             
-            // Update and add to completed challenges
             completedChallenge.is_active = false;
             completedChallenge.progress = 100;
             userCompletedChallenges.value.push(completedChallenge);
           }
           
-          // Also update the challenge in allChallenges list if it exists there
           const challengeInAll = allChallenges.value.find(c => c.id === challengeId);
           if (challengeInAll) {
             challengeInAll.joined = true;
@@ -422,7 +405,6 @@ import { useAuthStore } from '../store/auth';
   </script>
   
   <style scoped>
-  /* (Keep existing styles as-is) */
   .challenges-page {
     display: flex;
     flex-direction: column;

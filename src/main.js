@@ -9,7 +9,6 @@ const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
 
-// Initialize auth store before router
 const authStore = useAuthStore()
 authStore.initialize()
 

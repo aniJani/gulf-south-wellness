@@ -163,7 +163,7 @@ export default {
       try {
         if (isLogin.value) {
           const response = await loginUser(formData.username, formData.password);
-          authStore.setUser(response.data);
+          authStore.setUser(response.data); // Set user as state to authStore so that they can access the protected routes
           router.push({ name: 'Dashboard' });
         } else {
           const response = await createUser({
@@ -209,14 +209,13 @@ export default {
   max-width: 420px;
   padding: 1.5rem;
   border-radius: 12px;
-  /* Removed box-shadow */
   border: 1px solid var(--border-color);
   background: var(--bg-card);
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: 1rem; /* Reduced from 1.25rem */
+  margin-bottom: 1rem; 
 }
 
 .logo {
@@ -224,7 +223,7 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.5rem; /* Reduced from 0.75rem */
+  margin-bottom: 0.5rem;
 }
 
 .logo-icon {
@@ -238,7 +237,6 @@ export default {
   justify-content: center;
   font-weight: bold;
   font-size: 1.5rem;
-  /* Removed box-shadow */
 }
 
 .app-title {
@@ -261,7 +259,7 @@ export default {
 
 .auth-tabs {
   display: flex;
-  margin-bottom: 1rem; /* Reduced from 1.25rem */
+  margin-bottom: 1rem; 
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -316,7 +314,7 @@ export default {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem; /* Reduced from 0.25rem */
+  gap: 0.15rem;
 }
 
 .form-group label {
@@ -332,7 +330,7 @@ export default {
 
 .input-with-icon input {
   width: 100%;
-  padding: 0.6rem 0.75rem; /* Slightly reduced */
+  padding: 0.6rem 0.75rem; 
   padding-right: 2.5rem;
   border: 1px solid var(--border-color);
   background: var(--bg-input);
@@ -344,7 +342,6 @@ export default {
 
 .input-with-icon input:focus {
   border-color: var(--accent-primary);
-  /* Reduced shadow */
   box-shadow: 0 0 0 1px rgba(187, 134, 252, 0.15);
   outline: none;
 }
@@ -375,8 +372,8 @@ export default {
 }
 
 .auth-button {
-  margin-top: 0.3rem; /* Reduced from 0.5rem */
-  padding: 0.7rem; /* Reduced from 0.75rem */
+  margin-top: 0.3rem; 
+  padding: 0.7rem;
   font-weight: 600;
   font-size: 0.95rem;
   border-radius: 6px;
@@ -385,8 +382,7 @@ export default {
 }
 
 .auth-button:hover {
-  transform: none; /* Removed transform effect */
-  /* Removed box-shadow */
+  transform: none;
 }
 
 .auth-button:active {
@@ -420,7 +416,7 @@ export default {
 }
 
 .auth-toggle {
-  margin-top: 0.5rem; /* Reduced from 0.75rem */
+  margin-top: 0.5rem;
   text-align: center;
   font-size: 0.85rem;
   color: var(--text-secondary);

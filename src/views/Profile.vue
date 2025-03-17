@@ -88,7 +88,6 @@
             </div>
           </div>
           
-          <!-- Challenges Card with Tabbed Interface -->
           <div class="challenges-card card">
             <h3>Your Challenges</h3>
             <div class="challenges-tabs">
@@ -125,7 +124,6 @@
         </div>
       </div>
       
-      <!-- Edit Profile Modal -->
       <div v-if="isEditing" class="modal-overlay" @click="isEditing = false">
         <div class="modal-content card" @click.stop>
           <div class="modal-header">
@@ -204,7 +202,6 @@ import { useAuthStore } from '../store/auth';
         password: ''
       });
   
-      // Tabs for activities: "all", "completed", "pending"
       const activitiesTab = ref('all');
       const filteredActivities = computed(() => {
         if (activitiesTab.value === 'all') {
@@ -217,7 +214,6 @@ import { useAuthStore } from '../store/auth';
         return userActivities.value;
       });
   
-      // Tabs for challenges: "active" vs "completed"
       const challengesTab = ref('active');
       const filteredChallenges = computed(() => {
         return challengesTab.value === 'active'
@@ -243,7 +239,6 @@ import { useAuthStore } from '../store/auth';
         });
       });
   
-      // Helper to format ISO date strings
       const formatDate = (dateString) => {
         if (!dateString) return '';
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -253,7 +248,6 @@ import { useAuthStore } from '../store/auth';
         });
       };
   
-      // Helper to compute challenge duration from start_date and end_date
       const getChallengeDuration = (challenge) => {
         if (challenge.start_date && challenge.end_date) {
           const start = new Date(challenge.start_date);
@@ -480,7 +474,6 @@ import { useAuthStore } from '../store/auth';
     gap: 1.5rem;
   }
   
-  /* Activities Card Styles */
   .activity-card {
     padding: 1.5rem;
   }
@@ -570,7 +563,6 @@ import { useAuthStore } from '../store/auth';
     color: var(--text-muted);
   }
   
-  /* Challenges Card Styles */
   .challenges-card {
     padding: 1.5rem;
   }

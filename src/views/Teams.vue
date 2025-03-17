@@ -135,10 +135,10 @@ import { useAuthStore } from '../store/auth';
       const teamMembers = ref([]);
       const teamTotalPoints = ref(0);
   
-      // New team (only a name is required)
+      // New team
       const newTeam = ref({ name: '' });
   
-      // All users (needed to compute team points)
+      // needed to compute team points
       const allUsers = ref([]);
       const fetchAllUsers = async () => {
         try {
@@ -149,7 +149,7 @@ import { useAuthStore } from '../store/auth';
         }
       };
   
-      // Fetch teams from public endpoint and enrich with membership info and team points.
+      // Fetch teams and compute team points
       const fetchTeams = async () => {
         try {
           const response = await getTeams({ skip: 0, limit: 20 });
@@ -190,7 +190,6 @@ import { useAuthStore } from '../store/auth';
                 getUserStatistics(member.id)
                   .then(statRes => {
                     console.log(`User ${member.id} stats:`, statRes.data);
-                    // Use total_points instead of points
                     return parseInt(statRes.data?.total_points || 0, 10);
                   })
                   .catch(err => {

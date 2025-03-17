@@ -215,13 +215,11 @@ import { useAuthStore } from '../store/auth';
         });
       });
       
-      // Example chart data based on selected time period (placeholder)
       const chartData = ref({
         labels: [],
         datasets: []
       });
       
-      // Modify the fetchActivityChartData function to use dates on the x-axis
 const fetchActivityChartData = async () => {
   try {
     // Get user's activities and completed challenges
@@ -241,7 +239,6 @@ const fetchActivityChartData = async () => {
     const completedChallenges = completedChallengesResponse.data || [];
     const now = new Date();
     
-    // Generate array of last 7 dates for x-axis
     const dateLabels = [];
     const dateGroups = {};
     const activityByDate = {};
@@ -252,18 +249,16 @@ const fetchActivityChartData = async () => {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       
-      // Format as MM/DD for display
       const formattedDate = `${date.getMonth() + 1}/${date.getDate()}`;
       dateLabels.push(formattedDate);
       
-      // Use ISO date format as key for grouping (YYYY-MM-DD)
+      // Use YYYY-MM-DD
       const dateKey = date.toISOString().split('T')[0];
-      dateGroups[dateKey] = 6 - i; // Position in the array (0-6)
+      dateGroups[dateKey] = 6 - i;
       activityByDate[dateKey] = 0;
       challengesByDate[dateKey] = 0;
     }
     
-    // Group completed activities by their actual date
     activities.forEach(activity => {
       if (activity.completed_at) {
         const activityDate = new Date(activity.completed_at);
@@ -276,13 +271,11 @@ const fetchActivityChartData = async () => {
       }
     });
     
-    // Group completed challenges by their actual date
     completedChallenges.forEach(challenge => {
       if (challenge.completed_at) {
         const challengeDate = new Date(challenge.completed_at);
         const dateKey = challengeDate.toISOString().split('T')[0];
         
-        // Only count if it's within our 7-day window
         if (dateGroups.hasOwnProperty(dateKey)) {
           challengesByDate[dateKey]++;
         }
@@ -307,7 +300,7 @@ const fetchActivityChartData = async () => {
       }
     });
     
-    // Update chart data with actual dates and metrics
+    // Update chart data with dates and metrics
     chartData.value = {
       labels: dateLabels,
       datasets: [
@@ -331,12 +324,10 @@ const fetchActivityChartData = async () => {
   }
 };
 
-// Update the empty chart data helper to use dates
 const setEmptyChartData = () => {
   const now = new Date();
   const dateLabels = [];
   
-  // Generate date labels for empty chart
   for (let i = 6; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
@@ -362,7 +353,7 @@ const setEmptyChartData = () => {
   };
 };
       
-      // Update the fetch activities part of fetchDashboardData
+// fetch activities part of fetchDashboardData
 const fetchDashboardData = async () => {
   try {
     // Fetch user statistics 
@@ -379,19 +370,17 @@ const fetchDashboardData = async () => {
     // Fetch active challenges - only get the latest 3, don't filter by progress
     const challengesResponse = await getUserChallenges(userId.value, { completed: false });
     if (challengesResponse.data && challengesResponse.data.length > 0) {
-      // Just take the first 3 challenges without any progress filtering
       activeChallenges.value = challengesResponse.data.slice(0, 3).map(challenge => ({
         ...challenge,
-        is_active: true // Ensure is_active flag is set
+        is_active: true
       }));
     } else {
       activeChallenges.value = [];
     }
 
-    // Fetch active activities - only get the latest 3 INCOMPLETE ones
+    // only get the latest 3 INCOMPLETE ones
     const activitiesResponse = await getActivitiesByUser(userId.value);
     if (activitiesResponse.data && activitiesResponse.data.length > 0) {
-      // Filter to only show incomplete activities (not completed yet)
       activeActivities.value = activitiesResponse.data
         .filter(activity => !activity.is_completed)
         .slice(0, 3);
@@ -406,7 +395,6 @@ const fetchDashboardData = async () => {
   }
 };
 
-// Add these variables in the setup function
 const activeChartView = ref('trends');
 const leaderboardType = ref('users');
 const userLeaderboard = ref([]);
@@ -417,7 +405,7 @@ const fetchLeaderboardData = async () => {
   try {
     console.log('Fetching leaderboard data...');
     const [usersResponse, teamsResponse] = await Promise.all([
-      getUsersLeaderboard(10), // Changed from getUsersLeaderboard
+      getUsersLeaderboard(10), 
       getTeamLeaderboard()
     ]);
     
@@ -431,11 +419,10 @@ const fetchLeaderboardData = async () => {
   }
 };
 
-// Function to set leaderboard view and fetch data if needed
 const setLeaderboardView = (view) => {
   activeChartView.value = view;
   if (view === 'leaderboard') {
-    fetchLeaderboardData(); // Always fetch fresh data when switching to leaderboard
+    fetchLeaderboardData();
   }
 };
       
@@ -443,17 +430,14 @@ const setLeaderboardView = (view) => {
         try {
           console.log('Completing challenge with ID:', challengeId);
           
-          // Call API without checking result.success
           await completeChallenge(challengeId, userId.value);
           
-          // Update local state - remove from active challenges list
           const challengeIndex = activeChallenges.value.findIndex(c => c.id === challengeId);
           if (challengeIndex !== -1) {
             activeChallenges.value.splice(challengeIndex, 1);
             console.log('Challenge removed from active list');
           }
           
-          // Refresh dashboard data to update stats
           await fetchDashboardData();
           console.log('Challenge completed successfully!');
         } catch (error) {
@@ -465,18 +449,14 @@ const setLeaderboardView = (view) => {
         try {
           console.log('Completing activity with ID:', activityId);
           
-          // Call API without checking result.success (similar to Challenges.vue)
           await completeActivity(activityId, userId.value);
           
-          // Update local state - mark activity as completed and remove from list
           const activityIndex = activeActivities.value.findIndex(a => a.id === activityId);
           if (activityIndex !== -1) {
-            // Remove from active activities list immediately
             activeActivities.value.splice(activityIndex, 1);
             console.log('Activity removed from active list');
           }
           
-          // Refresh dashboard data to update stats
           await fetchDashboardData();
           console.log('Activity completed successfully!');
         } catch (error) {
@@ -486,7 +466,7 @@ const setLeaderboardView = (view) => {
       
       onMounted(() => {
         fetchDashboardData();
-        fetchLeaderboardData(); // Fetch leaderboard data on mount
+        fetchLeaderboardData(); 
       });
       
       return {
