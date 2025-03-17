@@ -36,8 +36,8 @@ export const getActivity = (activityId) =>
 export const updateActivity = (activityId, updateData) =>
     apiClient.patch(`/activities/${activityId}`, updateData)
 
-export const deleteActivity = (activityId) =>
-    apiClient.delete(`/activities/${activityId}`)
+export const deleteActivity = (activityId, userId) =>
+    apiClient.delete(`/activities/${activityId}`, { params: { user_id: userId } })
 
 export const completeActivity = (activityId, userId) =>
     apiClient.post(`/activities/${activityId}/complete`, null, { params: { user_id: userId } })

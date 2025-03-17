@@ -104,7 +104,24 @@
               <button v-if="!activity.is_completed" class="primary" @click="handleMarkActivityComplete(activity.id)">
                 Mark Complete
               </button>
-              <button v-else disabled>Completed</button>
+              <button v-else-if="activity.is_completed" disabled>Completed</button>
+              
+              <button 
+                v-if="!activity.is_completed && deleteConfirmId !== activity.id" 
+                class="danger" 
+                @click="confirmDelete(activity.id)"
+              >
+                Delete
+              </button>
+              
+              <!-- Confirmation delete button -->
+              <button 
+                v-if="!activity.is_completed && deleteConfirmId === activity.id" 
+                class="danger confirm-delete" 
+                @click="handleDeleteActivity(activity.id)"
+              >
+                Confirm Delete
+              </button>
             </div>
           </div>
         </div>
@@ -163,13 +180,14 @@
   <script>
   import { computed, onMounted, ref } from 'vue';
 import {
-    completeActivity,
-    completeChallenge,
-    createActivity,
-    getActivitiesByUser,
-    getChallenges,
-    getUserChallenges,
-    joinChallenge
+  completeActivity,
+  completeChallenge,
+  createActivity,
+  deleteActivity,
+  getActivitiesByUser,
+  getChallenges,
+  getUserChallenges,
+  joinChallenge
 } from '../services/api';
 import { useAuthStore } from '../store/auth';
   
@@ -313,6 +331,40 @@ import { useAuthStore } from '../store/auth';
           console.error('Error completing activity:', error);
         }
       };
+
+      // Add deleteConfirmId to track which activity is showing the delete confirmation button
+      const deleteConfirmId = ref(null);
+
+      // Function to show the confirmation button
+      const confirmDelete = (activityId) => {
+        deleteConfirmId.value = activityId;
+        
+        // Automatically reset after a few seconds if user doesn't confirm
+        setTimeout(() => {
+          if (deleteConfirmId.value === activityId) {
+            deleteConfirmId.value = null;
+          }
+        }, 3000);
+      };
+
+      const handleDeleteActivity = async (activityId) => {
+        try {
+          // Call the deleteActivity API with activityId and userId
+          await deleteActivity(activityId, userId.value);
+          
+          // Remove the deleted activity from the local array
+          activities.value = activities.value.filter(a => a.id !== activityId);
+          
+          deleteConfirmId.value = null;
+        } catch (error) {
+          console.error('Error deleting activity:', error);
+        }
+      };
+
+      // Add a click handler on the main component to cancel deletion when clicking elsewhere
+      const cancelDeleteMode = () => {
+        deleteConfirmId.value = null;
+      };
       
       // Create Activity Modal State and Functionality
       const showCreateActivityModal = ref(false);
@@ -396,9 +448,13 @@ import { useAuthStore } from '../store/auth';
         handleJoinChallenge,
         handleCompleteChallenge,
         handleMarkActivityComplete,
+        handleDeleteActivity,
         showCreateActivityModal,
         newActivity,
-        createNewActivity
+        createNewActivity,
+        deleteConfirmId,
+        confirmDelete,
+        cancelDeleteMode
       };
     }
   };
@@ -653,6 +709,25 @@ import { useAuthStore } from '../store/auth';
     justify-content: flex-end;
     gap: 1rem;
     margin-top: 1rem;
+  }
+  .danger {
+    background-color: var(--accent-error, #cf6679);
+    color: #fff;
+    margin-left: 0.5rem;
+  }
+  
+  .danger:hover {
+    opacity: 0.9;
+  }
+  .confirm-delete {
+    background-color: var(--accent-error, #cf6679);
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
   }
   @media (max-width: 768px) {
     .page-header {
