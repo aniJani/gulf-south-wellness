@@ -222,21 +222,31 @@ import { useAuthStore } from '../store/auth';
       
 const fetchActivityChartData = async () => {
   try {
+    // Add timestamp for cache busting
+    const timestamp = new Date().getTime();
+    
     // Get user's activities and completed challenges
     const [activitiesResponse, completedChallengesResponse] = await Promise.all([
-      getActivitiesByUser(userId.value),
-      getUserChallenges(userId.value, { completed: true })
+      getActivitiesByUser(userId.value, { completed: true, timestamp }), // Only get COMPLETED activities
+      getUserChallenges(userId.value, { completed: true, timestamp }) // Add timestamp
     ]);
+    
+    console.log('Completed activities:', activitiesResponse.data);
+    console.log('Completed challenges:', completedChallengesResponse.data);
     
     if ((!activitiesResponse.data || activitiesResponse.data.length === 0) && 
         (!completedChallengesResponse.data || completedChallengesResponse.data.length === 0)) {
-      // Fallback to empty chart if no data
       setEmptyChartData();
       return;
     }
     
     const activities = activitiesResponse.data || [];
     const completedChallenges = completedChallengesResponse.data || [];
+    
+    // Debug what's being processed
+    console.log('Processing activities:', activities.length);
+    console.log('Processing challenges:', completedChallenges.length);
+    
     const now = new Date();
     
     const dateLabels = [];
@@ -244,7 +254,6 @@ const fetchActivityChartData = async () => {
     const activityByDate = {};
     const challengesByDate = {};
     
-    // Create arrays for the last 7 days (including today)
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
@@ -252,35 +261,52 @@ const fetchActivityChartData = async () => {
       const formattedDate = `${date.getMonth() + 1}/${date.getDate()}`;
       dateLabels.push(formattedDate);
       
-      // Use YYYY-MM-DD
-      const dateKey = date.toISOString().split('T')[0];
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${day}`;
+      
+      console.log(`Date key for i=${i}: ${dateKey}`);
+      
       dateGroups[dateKey] = 6 - i;
       activityByDate[dateKey] = 0;
       challengesByDate[dateKey] = 0;
     }
     
+    console.log('Date groups:', dateGroups);
+    
     activities.forEach(activity => {
       if (activity.completed_at) {
-        const activityDate = new Date(activity.completed_at);
-        const dateKey = activityDate.toISOString().split('T')[0];
+        const completedDate = activity.completed_at.split('T')[0];
+        console.log(`Activity ${activity.id} completed on: ${completedDate}`);
         
         // Only count if it's within our 7-day window
-        if (dateGroups.hasOwnProperty(dateKey)) {
-          activityByDate[dateKey]++;
+        if (dateGroups.hasOwnProperty(completedDate)) {
+          activityByDate[completedDate]++;
+          console.log(`Activity counted for ${completedDate}`);
+        } else {
+          console.log(`Activity date ${completedDate} not in range`);
         }
       }
     });
     
     completedChallenges.forEach(challenge => {
       if (challenge.completed_at) {
-        const challengeDate = new Date(challenge.completed_at);
-        const dateKey = challengeDate.toISOString().split('T')[0];
+        // Extract just the date part YYYY-MM-DD
+        const completedDate = challenge.completed_at.split('T')[0];
+        console.log(`Challenge ${challenge.id} completed on: ${completedDate}`);
         
-        if (dateGroups.hasOwnProperty(dateKey)) {
-          challengesByDate[dateKey]++;
+        if (dateGroups.hasOwnProperty(completedDate)) {
+          challengesByDate[completedDate]++;
+          console.log(`Challenge counted for ${completedDate}`);
+        } else {
+          console.log(`Challenge date ${completedDate} not in range`);
         }
       }
     });
+    
+    console.log('Activity counts by date:', activityByDate);
+    console.log('Challenge counts by date:', challengesByDate);
     
     // Convert the grouped data back to arrays matching our date labels
     const activityCounts = new Array(7).fill(0);
@@ -299,6 +325,9 @@ const fetchActivityChartData = async () => {
         challengeCounts[index] = challengesByDate[dateKey];
       }
     });
+    
+    console.log('Final activity counts:', activityCounts);
+    console.log('Final challenge counts:', challengeCounts);
     
     // Update chart data with dates and metrics
     chartData.value = {
@@ -438,7 +467,12 @@ const setLeaderboardView = (view) => {
             console.log('Challenge removed from active list');
           }
           
-          await fetchDashboardData();
+          // Add a small delay before refreshing to allow backend to process
+          setTimeout(async () => {
+            await fetchDashboardData();
+            console.log('Dashboard data refreshed after delay');
+          }, 100);
+          
           console.log('Challenge completed successfully!');
         } catch (error) {
           console.error('Error completing challenge:', error);
