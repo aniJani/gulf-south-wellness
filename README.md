@@ -1,4 +1,3 @@
-```markdown
 # Gulf South Wellness Platform
 
 This repository combines two key components of the Gulf South Wellness ecosystem:
@@ -231,4 +230,3 @@ gulf_south_backend/
 
 - Backend: [https://github.com/aniJani/gulf_south_backend](https://github.com/aniJani/gulf_south_backend)
 - Frontend: [https://github.com/aniJani/gulf-south-wellness](https://github.com/aniJani/gulf-south-wellness)
-```
