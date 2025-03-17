@@ -6,9 +6,7 @@
         <h1 class="logo-text">Gulf South</h1>
       </div>
       <button class="collapse-button" @click="toggleSidebar">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
+        {{ isCollapsed ? '>' : '<' }}
       </button>
     </div>
     
@@ -50,10 +48,29 @@
           </svg>
           <span class="nav-text">Profile</span>
         </router-link>
+        
+        <!-- Theme toggle button styled like other nav items -->
+        <div class="nav-item" @click="toggleTheme">
+          <svg v-if="isDarkMode" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <span class="nav-text">{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</span>
+        </div>
       </nav>
     </div>
     
-    <!-- Add logout button to sidebar footer -->
+    <!-- Improved logout button in sidebar footer -->
     <div class="sidebar-footer">
       <div class="nav-item logout-button" @click="handleLogout">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -76,6 +93,7 @@ export default {
   name: 'Sidebar',
   setup() {
     const isCollapsed = ref(false);
+    const isDarkMode = ref(false);
     const route = useRoute();
     const router = useRouter();
     const authStore = useAuthStore();
@@ -91,6 +109,12 @@ export default {
     const handleLogout = () => {
       authStore.logout();
       router.push('/auth');
+    };
+    
+    const toggleTheme = () => {
+      isDarkMode.value = !isDarkMode.value;
+      document.documentElement.setAttribute('data-theme', isDarkMode.value ? 'dark' : 'light');
+      localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light');
     };
     
     // Close sidebar on mobile when route changes
@@ -114,13 +138,20 @@ export default {
         isCollapsed.value = true;
         document.body.classList.add('sidebar-collapsed');
       }
+      
+      // Check saved theme preference
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      isDarkMode.value = savedTheme === 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
     });
     
     return {
       isCollapsed,
       toggleSidebar,
       handleLogout,
-      route
+      route,
+      isDarkMode,
+      toggleTheme
     };
   }
 };
@@ -179,7 +210,8 @@ export default {
   font-weight: 600;
   white-space: nowrap;
   transition: opacity var(--transition-fast);
-  margin-left: 0.75rem;
+  margin-left: 0.1rem;
+  margin-top: 0.5rem;
 }
 
 .collapsed .logo-text {
@@ -197,13 +229,16 @@ export default {
   align-items: center;
   justify-content: center;
   background-color: var(--accent-primary);
-  color: white; 
+  color: #000000; /* Black text for better visibility */
+  font-weight: 600; /* Make it bold */
+  font-size: 16px; /* Larger font size */
   border: none;
   cursor: pointer;
   transition: all var(--transition-fast);
   position: absolute;
   right: 1rem;
   z-index: 9999;
+  overflow: hidden;
 }
 
 .collapse-button:focus {
@@ -212,18 +247,11 @@ export default {
 
 .collapse-button:hover {
   background-color: var(--accent-primary-hover, #bb86fc);
-  color: white;
+  color: #ffffff; /* White text on hover */
 }
 
 .collapsed .collapse-button {
   right: 20px;
-  background-color: var(--accent-primary);
-  color: white;
-}
-
-/* This rotates the chevron from < to > */
-.collapsed .collapse-button svg {
-  transform: rotate(180deg);
 }
 
 .sidebar-content {
@@ -283,6 +311,8 @@ export default {
 .nav-text {
   white-space: nowrap;
   transition: opacity var(--transition-fast);
+  cursor: pointer;
+  user-select: none;
 }
 
 .collapsed .nav-text {
@@ -292,9 +322,9 @@ export default {
 }
 
 .sidebar-footer {
-  padding: 1rem;
   border-top: 1px solid var(--border-color);
   margin-top: auto;
+  padding: 0.5rem 0; /* Reduced padding */
 }
 
 .logout-button {
@@ -305,7 +335,7 @@ export default {
   color: var(--text-secondary);
   cursor: pointer;
   border-radius: var(--radius-md);
-  margin: 0 0.5rem;
+  margin: 0.25rem 0.5rem; /* Adjusted margins */
   transition: all var(--transition-fast);
   white-space: nowrap;
 }
@@ -319,6 +349,33 @@ export default {
   min-width: 20px;
   height: 20px;
   flex-shrink: 0;
+}
+
+/* Ensure proper centering in collapsed mode */
+.collapsed .logout-button {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.theme-toggle {
+  cursor: pointer;
+}
+.theme-toggle .nav-text{
+  cursor: pointer;
+  user-select: none;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-tertiary);
+}
+
+.theme-toggle .nav-icon {
+  display: none; /* This is no longer needed */
+}
+
+.nav-item:hover svg {
+  color: var(--accent-primary);
 }
 
 @media (max-width: 768px) {

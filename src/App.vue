@@ -2,10 +2,13 @@
   <router-view />
 </template>
 
-<script>
-export default {
-  name: 'App'
-}
+<script setup>
+import { onMounted } from 'vue';
+import { initializeTheme } from './utils/theme';
+
+onMounted(() => {
+  initializeTheme();
+});
 </script>
 
 <style>

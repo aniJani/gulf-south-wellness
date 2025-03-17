@@ -1,21 +1,41 @@
 :root {
+  /* Light theme colors (default) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f1f3f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8f9fa;
+  
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --text-muted: #868e96;
+  
+  --accent-primary: #ad91ff;
+  --accent-secondary: #00b8d4;
+  --accent-error: #e03131;
+  
+  --border-color: #dee2e6;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+
   /* Dark theme colors */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #121212;
-  --bg-tertiary: #1e1e1e;
-  --bg-card: #1a1a1a;
-  --bg-card-hover: #252525;
-  
-  --text-primary: rgba(255, 255, 255, 0.87);
-  --text-secondary: rgba(255, 255, 255, 0.6);
-  --text-muted: rgba(255, 255, 255, 0.38);
-  
-  --accent-primary: #bb86fc;
-  --accent-secondary: #03dac6;
-  --accent-error: #cf6679;
-  
-  --border-color: rgba(255, 255, 255, 0.12);
-  --shadow-color: rgba(0, 0, 0, 0.5);
+  &[data-theme="dark"] {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #121212;
+    --bg-tertiary: #1e1e1e;
+    --bg-card: #1a1a1a;
+    --bg-card-hover: #252525;
+    
+    --text-primary: rgba(255, 255, 255, 0.87);
+    --text-secondary: rgba(255, 255, 255, 0.6);
+    --text-muted: rgba(255, 255, 255, 0.38);
+    
+    --accent-primary: #bb86fc;
+    --accent-secondary: #03dac6;
+    --accent-error: #cf6679;
+    
+    --border-color: rgba(255, 255, 255, 0.12);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+  }
   
   /* Spacing */
   --space-xs: 0.25rem;
@@ -37,10 +57,48 @@
   --radius-full: 9999px;
 }
 
+/* Keep the existing global prevention of text selection */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  user-select: none; /* Prevent text selection by default */
+}
+
+/* Ensure headings and paragraphs are not selectable */
+h1, h2, h3, h4, h5, h6, p, span, div {
+  user-select: none !important; /* Force no text selection */
+  cursor: default !important; /* Default cursor instead of text selection cursor */
+}
+
+/* Only allow selection for input elements */
+input,
+textarea,
+[contenteditable="true"] {
+  user-select: text !important; /* Only these elements should allow text selection */
+  cursor: text !important; /* Show text cursor */
+}
+
+/* Remove any Auth.vue or component-specific styles that might override these */
+.auth-container,
+.auth-subtitle,
+.auth-toggle,
+.form-error,
+.app-title {
+  user-select: none !important;
+  cursor: default !important;
+}
+
+/* Ensure interactive elements show pointer cursor */
+button, 
+a,
+.nav-item,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+.clickable {
+  cursor: pointer !important;
 }
 
 html, body {
@@ -281,3 +339,77 @@ label {
 
 .w-full { width: 100%; }
 .h-full { height: 100%; }
+
+/* Add these rules to your global style.css file */
+
+/* Make interactive elements show pointer cursor and prevent text selection */
+button, 
+.button,
+a,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+.clickable,
+.nav-item,
+.tab-button,
+.card-action {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Allow selection for content text */
+p, 
+h1, h2, h3, h4, h5, h6,
+span:not(.nav-text):not(.button-text):not(.tab-text),
+label,
+input,
+textarea,
+.selectable-text {
+  user-select: text;
+}
+
+/* For custom components that should behave like buttons */
+[class*="toggle"],
+[class*="action"],
+[class*="control"],
+[class*="-button"] {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Only allow text selection for input elements where users write */
+input,
+textarea,
+[contenteditable="true"],
+.allow-select {
+  user-select: text !important; /* Force allow selection for input fields */
+  cursor: text; /* Show text cursor */
+}
+
+/* Use consistent pointer cursor for all interactive elements */
+button,
+a,
+.nav-item,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+.clickable,
+.card-action,
+.toggle,
+.menu-item {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Remove focus outline for clicked elements but keep for keyboard navigation */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Keep focus styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}

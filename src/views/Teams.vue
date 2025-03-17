@@ -295,10 +295,15 @@ import { useAuthStore } from '../store/auth';
         try {
           const response = await createTeam({ name: newTeam.value.name });
           const createdTeam = response.data;
+          
+          // Automatically add the current user as a team member
+          await addTeamMember(createdTeam.id, userId.value);
+          
           const words = createdTeam.name.split(' ');
           const initials = words.length > 1 
             ? `${words[0][0]}${words[1][0]}`
             : createdTeam.name.substring(0, 2);
+          
           teams.value.unshift({
             ...createdTeam,
             isMember: true,
@@ -306,6 +311,7 @@ import { useAuthStore } from '../store/auth';
             initials: initials.toUpperCase(),
             teamPoints: 0
           });
+          
           newTeam.value = { name: '' };
           showCreateTeamModal.value = false;
         } catch (error) {
