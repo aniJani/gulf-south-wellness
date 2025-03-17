@@ -58,8 +58,8 @@
             </svg>
           </div>
           <div class="stat-content">
-            <div class="stat-value">{{ stats.currentStreak }}</div>
-            <div class="stat-label">Day Streak</div>
+            <div class="stat-value">{{ stats.challengesJoined }}</div>
+            <div class="stat-label">Challenges Joined</div>
           </div>
         </div>
       </div>
@@ -68,16 +68,6 @@
         <div class="activity-chart-container card">
           <div class="card-header">
             <h2>Activity Trends</h2>
-            <div class="time-filter">
-              <button 
-                v-for="period in timePeriods" 
-                :key="period.value" 
-                :class="{ active: selectedPeriod === period.value }"
-                @click="selectedPeriod = period.value"
-              >
-                {{ period.label }}
-              </button>
-            </div>
           </div>
           <ActivityChart :chartData="chartData" />
         </div>
@@ -99,10 +89,7 @@
                 <h3>{{ challenge.title }}</h3>
                 <div class="challenge-meta">
                   <span class="challenge-category" :class="challenge.category">{{ challenge.category }}</span>
-                  <span class="challenge-progress-text">{{ challenge.progress }}% Complete</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill" :style="{ width: `${challenge.progress}%` }"></div>
+                  <span class="challenge-status">Active</span>
                 </div>
               </div>
               <button class="secondary log-button" @click="logActivity(challenge.id)">
@@ -121,9 +108,9 @@
   </template>
   
   <script>
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
 import ActivityChart from '../components/ui/ActivityChart.vue';
-import { completeActivity, getUserChallenges, getUserStatistics } from '../services/api';
+import { completeActivity, getActivitiesByUser, getUserChallenges, getUserStatistics } from '../services/api';
 import { useAuthStore } from '../store/auth';
   
   export default {
@@ -138,17 +125,11 @@ import { useAuthStore } from '../store/auth';
         challengesCompleted: 0,
         points: 0,
         activitiesLogged: 0,
-        currentStreak: 0
+        challengesJoined: 0
       });
       
+      // Active challenges using the API with ?completed=false
       const activeChallenges = ref([]);
-      const selectedPeriod = ref('week');
-      
-      const timePeriods = [
-        { label: 'Week', value: 'week' },
-        { label: 'Month', value: 'month' },
-        { label: 'Year', value: 'year' }
-      ];
       
       const currentDate = computed(() => {
         const now = new Date();
@@ -160,91 +141,180 @@ import { useAuthStore } from '../store/auth';
         });
       });
       
-      // Chart data based on selected time period
-      const chartData = computed(() => {
-        let labels = [];
-        let data1 = [];
-        let data2 = [];
-        
-        if (selectedPeriod.value === 'week') {
-          labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-          data1 = [5, 8, 12, 4, 9, 6, 10];
-          data2 = [3, 5, 8, 2, 7, 4, 6];
-        } else if (selectedPeriod.value === 'month') {
-          labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-          data1 = [42, 38, 55, 47];
-          data2 = [28, 22, 31, 25];
-        } else {
-          labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          data1 = [150, 180, 210, 190, 220, 240, 200, 230, 210, 250, 270, 290];
-          data2 = [90, 110, 130, 120, 140, 150, 130, 140, 120, 160, 170, 180];
-        }
-        
-        return {
-          labels,
-          datasets: [
-            {
-              label: 'Activities',
-              data: data1,
-              borderColor: '#bb86fc',
-              tension: 0.4
-            },
-            {
-              label: 'Points',
-              data: data2,
-              borderColor: '#03dac6',
-              tension: 0.4
-            }
-          ]
-        };
+      // Example chart data based on selected time period (placeholder)
+      const chartData = ref({
+        labels: [],
+        datasets: []
       });
+      
+      // Modify the fetchActivityChartData function to use dates on the x-axis
+const fetchActivityChartData = async () => {
+  try {
+    // Get user's activities and completed challenges
+    const [activitiesResponse, completedChallengesResponse] = await Promise.all([
+      getActivitiesByUser(userId.value),
+      getUserChallenges(userId.value, { completed: true })
+    ]);
+    
+    if ((!activitiesResponse.data || activitiesResponse.data.length === 0) && 
+        (!completedChallengesResponse.data || completedChallengesResponse.data.length === 0)) {
+      // Fallback to empty chart if no data
+      setEmptyChartData();
+      return;
+    }
+    
+    const activities = activitiesResponse.data || [];
+    const completedChallenges = completedChallengesResponse.data || [];
+    const now = new Date();
+    
+    // Generate array of last 7 dates for x-axis
+    const dateLabels = [];
+    const dateGroups = {};
+    const activityByDate = {};
+    const challengesByDate = {};
+    
+    // Create arrays for the last 7 days (including today)
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      
+      // Format as MM/DD for display
+      const formattedDate = `${date.getMonth() + 1}/${date.getDate()}`;
+      dateLabels.push(formattedDate);
+      
+      // Use ISO date format as key for grouping (YYYY-MM-DD)
+      const dateKey = date.toISOString().split('T')[0];
+      dateGroups[dateKey] = 6 - i; // Position in the array (0-6)
+      activityByDate[dateKey] = 0;
+      challengesByDate[dateKey] = 0;
+    }
+    
+    // Group completed activities by their actual date
+    activities.forEach(activity => {
+      if (activity.completed_at) {
+        const activityDate = new Date(activity.completed_at);
+        const dateKey = activityDate.toISOString().split('T')[0];
+        
+        // Only count if it's within our 7-day window
+        if (dateGroups.hasOwnProperty(dateKey)) {
+          activityByDate[dateKey]++;
+        }
+      }
+    });
+    
+    // Group completed challenges by their actual date
+    completedChallenges.forEach(challenge => {
+      if (challenge.completed_at) {
+        const challengeDate = new Date(challenge.completed_at);
+        const dateKey = challengeDate.toISOString().split('T')[0];
+        
+        // Only count if it's within our 7-day window
+        if (dateGroups.hasOwnProperty(dateKey)) {
+          challengesByDate[dateKey]++;
+        }
+      }
+    });
+    
+    // Convert the grouped data back to arrays matching our date labels
+    const activityCounts = new Array(7).fill(0);
+    const challengeCounts = new Array(7).fill(0);
+    
+    Object.keys(activityByDate).forEach(dateKey => {
+      if (dateGroups.hasOwnProperty(dateKey)) {
+        const index = dateGroups[dateKey];
+        activityCounts[index] = activityByDate[dateKey];
+      }
+    });
+    
+    Object.keys(challengesByDate).forEach(dateKey => {
+      if (dateGroups.hasOwnProperty(dateKey)) {
+        const index = dateGroups[dateKey];
+        challengeCounts[index] = challengesByDate[dateKey];
+      }
+    });
+    
+    // Update chart data with actual dates and metrics
+    chartData.value = {
+      labels: dateLabels,
+      datasets: [
+        {
+          label: 'Activities Completed',
+          data: activityCounts,
+          borderColor: '#bb86fc',
+          tension: 0.4
+        },
+        {
+          label: 'Challenges Completed',
+          data: challengeCounts,
+          borderColor: '#03dac6',
+          tension: 0.4
+        }
+      ]
+    };
+  } catch (error) {
+    console.error('Error fetching activity chart data:', error);
+    setEmptyChartData();
+  }
+};
+
+// Update the empty chart data helper to use dates
+const setEmptyChartData = () => {
+  const now = new Date();
+  const dateLabels = [];
+  
+  // Generate date labels for empty chart
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    dateLabels.push(`${date.getMonth() + 1}/${date.getDate()}`);
+  }
+  
+  chartData.value = {
+    labels: dateLabels,
+    datasets: [
+      {
+        label: 'Activities Completed',
+        data: Array(7).fill(0),
+        borderColor: '#bb86fc',
+        tension: 0.4
+      },
+      {
+        label: 'Challenges Completed',
+        data: Array(7).fill(0),
+        borderColor: '#03dac6',
+        tension: 0.4
+      }
+    ]
+  };
+};
       
       const fetchDashboardData = async () => {
         try {
-          // Fetch user statistics
+          // Fetch user statistics 
           const statsResponse = await getUserStatistics(userId.value);
           if (statsResponse.data) {
-            stats.value = statsResponse.data;
-          } else {
-            // Sample data if API returns empty
             stats.value = {
-              challengesCompleted: 12,
-              points: 450,
-              activitiesLogged: 28,
-              currentStreak: 5
+              challengesCompleted: statsResponse.data.challenges_completed || 0,
+              points: statsResponse.data.total_points || 0,
+              activitiesLogged: statsResponse.data.activities_count || 0,
+              challengesJoined: statsResponse.data.challenges_joined || 0 // Use challenges_joined instead of streak
             };
           }
           
-          // Fetch user challenges
-          const challengesResponse = await getUserChallenges(userId.value);
+          // Fetch active challenges - only get the latest 3, don't filter by progress
+          const challengesResponse = await getUserChallenges(userId.value, { completed: false });
           if (challengesResponse.data && challengesResponse.data.length > 0) {
-            // Filter only active challenges (progress < 100%)
-            activeChallenges.value = challengesResponse.data
-              .filter(challenge => challenge.progress < 100)
-              .slice(0, 3); // Show only top 3
+            // Just take the first 3 challenges without any progress filtering
+            activeChallenges.value = challengesResponse.data.slice(0, 3).map(challenge => ({
+              ...challenge,
+              is_active: true // Ensure is_active flag is set
+            }));
           } else {
-            // Sample data if API returns empty
-            activeChallenges.value = [
-              {
-                id: 1,
-                title: "10,000 Steps Challenge",
-                category: "fitness",
-                progress: 65
-              },
-              {
-                id: 2,
-                title: "Meditation Master",
-                category: "mindfulness",
-                progress: 30
-              },
-              {
-                id: 3,
-                title: "Hydration Hero",
-                category: "nutrition",
-                progress: 90
-              }
-            ];
+            activeChallenges.value = [];
           }
+      
+          // Fetch activity data for chart
+          await fetchActivityChartData();
         } catch (error) {
           console.error('Error fetching dashboard data:', error);
         }
@@ -252,25 +322,18 @@ import { useAuthStore } from '../store/auth';
       
       const logActivity = async (challengeId) => {
         try {
-          await completeActivity(challengeId, userId.value);
+          const response = await completeActivity(challengeId, userId.value);
           
-          // Update local state
-          const challenge = activeChallenges.value.find(c => c.id === challengeId);
-          if (challenge) {
-            challenge.progress += 10; // Increment progress by 10%
-            if (challenge.progress > 100) challenge.progress = 100;
+          if (response.success) {
+            // Refresh dashboard data to get updated stats
+            await fetchDashboardData();
             
-            // If challenge is now complete, remove it from active challenges
-            if (challenge.progress === 100) {
-              activeChallenges.value = activeChallenges.value.filter(c => c.id !== challengeId);
-              stats.value.challengesCompleted++;
-            }
-            
-            stats.value.activitiesLogged++;
-            stats.value.points += 10; // Assume 10 points per activity
+            // Optionally show success message
+            console.log('Activity logged successfully!');
           }
         } catch (error) {
           console.error('Error logging activity:', error);
+          // Show error notification
         }
       };
       
@@ -284,8 +347,6 @@ import { useAuthStore } from '../store/auth';
         stats,
         activeChallenges,
         chartData,
-        timePeriods,
-        selectedPeriod,
         logActivity
       };
     }

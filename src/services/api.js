@@ -71,8 +71,8 @@ export const updateUserProfile = (userId, updateData) =>
     apiClient.patch(`/users/${userId}`, updateData)
 
 // --- Challenge Participation Endpoints ---
-export const getUserChallenges = (userId) =>
-    apiClient.get(`/users/${userId}/challenges`)
+export const getUserChallenges = (userId, params = {}) =>
+    apiClient.get(`/users/${userId}/challenges`, { params })
 
 export const getChallengeParticipants = (challengeId) =>
     apiClient.get(`/challenges/${challengeId}/participants`)

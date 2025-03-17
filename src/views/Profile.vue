@@ -39,64 +39,63 @@
             <div class="stats-grid">
               <div class="stat-item">
                 <div class="stat-value">{{ userStats.challengesCompleted || 0 }}</div>
-                <div class="stat-label">Challenges</div>
+                <div class="stat-label">Challenges Completed</div>
               </div>
               <div class="stat-item">
                 <div class="stat-value">{{ userStats.points || 0 }}</div>
                 <div class="stat-label">Points</div>
               </div>
               <div class="stat-item">
+                <div class="stat-value">{{ userStats.activitiesCompleted || 0 }}</div>
+                <div class="stat-label">Activities Completed</div>
+              </div>
+              <div class="stat-item">
                 <div class="stat-value">{{ userStats.activitiesLogged || 0 }}</div>
-                <div class="stat-label">Activities</div>
+                <div class="stat-label">Activities Created</div>
               </div>
             </div>
           </div>
         </div>
         
         <div class="profile-main">
+          <!-- Activities Card with Tabbed Interface -->
           <div class="activity-card card">
-            <h3>Recent Activity</h3>
-            <div class="activity-timeline">
-              <div v-for="activity in userActivities" :key="activity.id" class="timeline-item">
-                <div class="timeline-icon" :class="activity.type">
-                  <svg v-if="activity.type === 'challenge'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                    <path d="M2 17l10 5 10-5"></path>
-                    <path d="M2 12l10 5 10-5"></path>
-                  </svg>
-                  <svg v-else-if="activity.type === 'team'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            <h3>Your Activities</h3>
+            <div class="activities-tabs">
+              <button :class="{ active: activitiesTab === 'all' }" @click="activitiesTab = 'all'">All</button>
+              <button :class="{ active: activitiesTab === 'completed' }" @click="activitiesTab = 'completed'">Completed</button>
+              <button :class="{ active: activitiesTab === 'pending' }" @click="activitiesTab = 'pending'">Pending</button>
+            </div>
+            <div v-if="filteredActivities.length > 0" class="activity-timeline">
+              <div v-for="activity in filteredActivities" :key="activity.id" class="timeline-item">
+                <div class="timeline-icon">
+                  <svg v-if="activity.is_completed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                   <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                 </div>
                 <div class="timeline-content">
                   <div class="timeline-title">{{ activity.title }}</div>
                   <div class="timeline-description">{{ activity.description }}</div>
-                  <div class="timeline-date">{{ activity.date }}</div>
+                  <div class="timeline-date">{{ formatDate(activity.created_at) }}</div>
                 </div>
               </div>
             </div>
+            <div v-else class="no-activities">
+              <p>No activities found for this tab.</p>
+            </div>
           </div>
           
+          <!-- Challenges Card with Tabbed Interface -->
           <div class="challenges-card card">
             <h3>Your Challenges</h3>
             <div class="challenges-tabs">
-              <button 
-                :class="{ active: challengesTab === 'active' }" 
-                @click="challengesTab = 'active'"
-              >
+              <button :class="{ active: challengesTab === 'active' }" @click="challengesTab = 'active'">
                 Active
               </button>
-              <button 
-                :class="{ active: challengesTab === 'completed' }" 
-                @click="challengesTab = 'completed'"
-              >
+              <button :class="{ active: challengesTab === 'completed' }" @click="challengesTab = 'completed'">
                 Completed
               </button>
             </div>
@@ -106,23 +105,15 @@
                 <div class="challenge-info">
                   <h4>{{ challenge.title }}</h4>
                   <div class="challenge-meta">
-                    <span class="challenge-category" :class="challenge.category">{{ challenge.category }}</span>
                     <span class="challenge-points">{{ challenge.points }} pts</span>
+                    <!-- <span class="challenge-status" :class="{ active: challenge.is_active, completed: !challenge.is_active }">
+                      {{ challenge.is_active ? 'Active' : 'Completed' }}
+                    </span> -->
                   </div>
-                  <div v-if="challengesTab === 'active'" class="challenge-progress">
-                    <div class="progress-bar">
-                      <div class="progress-fill" :style="{ width: `${challenge.progress}%` }"></div>
-                    </div>
-                    <div class="progress-text">{{ challenge.progress }}% Complete</div>
+                  <div v-if="challenge.start_date && challenge.end_date" class="challenge-dates">
+                    {{ formatDate(challenge.completed_at) }}
                   </div>
                 </div>
-                <button 
-                  v-if="challengesTab === 'active'" 
-                  class="secondary challenge-action"
-                  @click="logActivity(challenge.id)"
-                >
-                  Log Activity
-                </button>
               </div>
             </div>
             <div v-else class="no-challenges">
@@ -175,12 +166,19 @@
           </form>
         </div>
       </div>
+      
     </div>
   </template>
   
   <script>
   import { computed, onMounted, reactive, ref } from 'vue';
-import { completeActivity, getActivitiesByUser, getUserChallenges, getUserProfile, getUserStatistics, updateUserProfile } from '../services/api';
+import {
+    getActivitiesByUser,
+    getUserChallenges,
+    getUserProfile,
+    getUserStatistics,
+    updateUserProfile
+} from '../services/api';
 import { useAuthStore } from '../store/auth';
   
   export default {
@@ -188,34 +186,55 @@ import { useAuthStore } from '../store/auth';
     setup() {
       const authStore = useAuthStore();
       const userId = computed(() => authStore.user?.id || 1);
-      
+  
       const user = ref(null);
       const userStats = ref({});
       const userActivities = ref([]);
-      const userChallenges = ref([]);
+      // Separate arrays for active and completed challenges
+      const userChallengesActive = ref([]);
+      const userChallengesCompleted = ref([]);
+  
       const isEditing = ref(false);
-      const challengesTab = ref('active');
-      
+  
+      // Form for editing profile
       const profileForm = reactive({
         full_name: '',
         username: '',
         email: '',
         password: ''
       });
-      
+  
+      // Tabs for activities: "all", "completed", "pending"
+      const activitiesTab = ref('all');
+      const filteredActivities = computed(() => {
+        if (activitiesTab.value === 'all') {
+          return userActivities.value;
+        } else if (activitiesTab.value === 'completed') {
+          return userActivities.value.filter(activity => activity.is_completed);
+        } else if (activitiesTab.value === 'pending') {
+          return userActivities.value.filter(activity => !activity.is_completed);
+        }
+        return userActivities.value;
+      });
+  
+      // Tabs for challenges: "active" vs "completed"
+      const challengesTab = ref('active');
+      const filteredChallenges = computed(() => {
+        return challengesTab.value === 'active'
+          ? userChallengesActive.value
+          : userChallengesCompleted.value;
+      });
+  
       const userInitials = computed(() => {
         if (!user.value || !user.value.full_name) return 'U';
-        
         const nameParts = user.value.full_name.split(' ');
-        if (nameParts.length > 1) {
-          return `${nameParts[0][0]}${nameParts[1][0]}`;
-        }
-        return nameParts[0].substring(0, 2);
+        return nameParts.length > 1
+          ? `${nameParts[0][0]}${nameParts[1][0]}`
+          : nameParts[0].substring(0, 2);
       });
-      
+  
       const formattedJoinDate = computed(() => {
         if (!user.value || !user.value.created_at) return 'N/A';
-        
         const date = new Date(user.value.created_at);
         return date.toLocaleDateString('en-US', {
           year: 'numeric',
@@ -223,15 +242,29 @@ import { useAuthStore } from '../store/auth';
           day: 'numeric'
         });
       });
-      
-      const filteredChallenges = computed(() => {
-        if (challengesTab.value === 'active') {
-          return userChallenges.value.filter(c => c.progress < 100);
-        } else {
-          return userChallenges.value.filter(c => c.progress === 100);
+  
+      // Helper to format ISO date strings
+      const formatDate = (dateString) => {
+        if (!dateString) return '';
+        return new Date(dateString).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      };
+  
+      // Helper to compute challenge duration from start_date and end_date
+      const getChallengeDuration = (challenge) => {
+        if (challenge.start_date && challenge.end_date) {
+          const start = new Date(challenge.start_date);
+          const end = new Date(challenge.end_date);
+          const diffInMs = end - start;
+          const days = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+          return days + " days";
         }
-      });
-      
+        return "N/A";
+      };
+  
       const fetchProfileData = async () => {
         try {
           // Fetch user profile
@@ -243,106 +276,41 @@ import { useAuthStore } from '../store/auth';
             full_name: 'John Doe',
             created_at: '2023-01-15T00:00:00Z'
           };
-          
+  
           // Update form data
           profileForm.full_name = user.value.full_name || '';
           profileForm.username = user.value.username || '';
           profileForm.email = user.value.email || '';
           profileForm.password = '';
-          
+  
           // Fetch user statistics
           const statsResponse = await getUserStatistics(userId.value);
-          userStats.value = statsResponse.data || {
-            challengesCompleted: 12,
-            points: 450,
-            activitiesLogged: 28,
-            currentStreak: 5
+          // Map API response to our userStats object with proper field names
+          userStats.value = {
+            challengesCompleted: statsResponse.data?.challenges_completed || 0,
+            points: statsResponse.data?.total_points || 0,
+            activitiesLogged: statsResponse.data?.activities_count || 0,
+            challengesJoined: statsResponse.data?.challenges_joined || 0,
+            activitiesCompleted: statsResponse.data?.activities_completed || 0,
           };
-          
+  
           // Fetch user activities
           const activitiesResponse = await getActivitiesByUser(userId.value);
-          userActivities.value = activitiesResponse.data || [
-            {
-              id: 1,
-              type: 'challenge',
-              title: 'Challenge Completed',
-              description: 'Completed the 10,000 Steps Challenge',
-              date: '2 days ago'
-            },
-            {
-              id: 2,
-              type: 'activity',
-              title: 'Activity Logged',
-              description: 'Logged 30 minutes of meditation',
-              date: '3 days ago'
-            },
-            {
-              id: 3,
-              type: 'team',
-              title: 'Joined Team',
-              description: 'Joined Team Alpha',
-              date: '1 week ago'
-            },
-            {
-              id: 4,
-              type: 'challenge',
-              title: 'Challenge Joined',
-              description: 'Joined the Hydration Hero Challenge',
-              date: '1 week ago'
-            },
-            {
-              id: 5,
-              type: 'activity',
-              title: 'Activity Logged',
-              description: 'Logged 45 minutes of yoga',
-              date: '2 weeks ago'
-            }
-          ];
+          userActivities.value = activitiesResponse.data;
+  
+          // Fetch active challenges
+          const activeResponse = await getUserChallenges(userId.value, { completed: false });
+          userChallengesActive.value = activeResponse.data || [];
+  
+          // Fetch completed challenges
+          const completedResponse = await getUserChallenges(userId.value, { completed: true });
+          userChallengesCompleted.value = completedResponse.data || [];
           
-          // Fetch user challenges
-          const challengesResponse = await getUserChallenges(userId.value);
-          userChallenges.value = challengesResponse.data || [
-            {
-              id: 1,
-              title: "10,000 Steps Challenge",
-              category: "fitness",
-              points: 100,
-              progress: 65
-            },
-            {
-              id: 2,
-              title: "Meditation Master",
-              category: "mindfulness",
-              points: 75,
-              progress: 30
-            },
-            {
-              id: 3,
-              title: "Hydration Hero",
-              category: "nutrition",
-              points: 50,
-              progress: 90
-            },
-            {
-              id: 4,
-              title: "Sleep Well",
-              category: "wellness",
-              points: 80,
-              progress: 100
-            },
-            {
-              id: 5,
-              title: "Digital Detox",
-              category: "mindfulness",
-              points: 90,
-              progress: 100
-            }
-          ];
         } catch (error) {
           console.error('Error fetching profile data:', error);
         }
       };
-      
+  
       const updateProfile = async () => {
         try {
           const updateData = {
@@ -350,78 +318,48 @@ import { useAuthStore } from '../store/auth';
             username: profileForm.username,
             email: profileForm.email
           };
-          
+  
           if (profileForm.password) {
             updateData.password = profileForm.password;
           }
-          
+  
           const response = await updateUserProfile(userId.value, updateData);
           user.value = response.data;
-          
-          // Update auth store with new user data
           authStore.setUser(response.data);
-          
           isEditing.value = false;
         } catch (error) {
           console.error('Error updating profile:', error);
         }
       };
-      
-      const logActivity = async (challengeId) => {
-        try {
-          await completeActivity(challengeId, userId.value);
-          
-          // Update local state
-          const challenge = userChallenges.value.find(c => c.id === challengeId);
-          if (challenge) {
-            challenge.progress += 10; // Increment progress by 10%
-            if (challenge.progress > 100) challenge.progress = 100;
-            
-            // If challenge is now complete, update stats
-            if (challenge.progress === 100) {
-              userStats.value.challengesCompleted++;
-            }
-            
-            userStats.value.activitiesLogged++;
-            userStats.value.points += 10; // Assume 10 points per activity
-            
-            // Add new activity to timeline
-            userActivities.value.unshift({
-              id: Date.now(),
-              type: 'activity',
-              title: 'Activity Logged',
-              description: `Logged activity for ${challenge.title}`,
-              date: 'Just now'
-            });
-          }
-        } catch (error) {
-          console.error('Error logging activity:', error);
-        }
-      };
-      
+  
       onMounted(() => {
         fetchProfileData();
       });
-      
+  
       return {
         user,
         userStats,
         userActivities,
-        userChallenges,
-        userInitials,
-        formattedJoinDate,
+        userChallengesActive,
+        userChallengesCompleted,
         isEditing,
         profileForm,
+        activitiesTab,
+        filteredActivities,
         challengesTab,
         filteredChallenges,
-        updateProfile,
-        logActivity
+        userInitials,
+        formattedJoinDate,
+        formatDate,
+        getChallengeDuration,
+        updateProfile
       };
     }
   };
   </script>
   
   <style scoped>
+  /* Existing styles preserved */
   .profile-page {
     display: flex;
     flex-direction: column;
@@ -437,7 +375,7 @@ import { useAuthStore } from '../store/auth';
   }
   
   .profile-cover {
-    height: 150px;
+    height: 30px;
     background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
   }
   
@@ -491,7 +429,8 @@ import { useAuthStore } from '../store/auth';
     gap: 1.5rem;
   }
   
-  .profile-card, .stats-card {
+  .profile-card,
+  .stats-card {
     padding: 1.5rem;
   }
   
@@ -541,8 +480,43 @@ import { useAuthStore } from '../store/auth';
     gap: 1.5rem;
   }
   
-  .activity-card, .challenges-card {
+  /* Activities Card Styles */
+  .activity-card {
     padding: 1.5rem;
+  }
+  
+  .activities-tabs {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  
+  .activities-tabs button {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    position: relative;
+  }
+  
+  .activities-tabs button:hover {
+    color: var(--text-primary);
+  }
+  
+  .activities-tabs button.active {
+    color: var(--accent-primary);
+  }
+  
+  .activities-tabs button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -0.25rem;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-primary);
+    border-radius: 2px;
   }
   
   .activity-timeline {
@@ -577,18 +551,6 @@ import { useAuthStore } from '../store/auth';
     z-index: 1;
   }
   
-  .timeline-icon.challenge {
-    color: var(--accent-primary);
-  }
-  
-  .timeline-icon.team {
-    color: var(--accent-secondary);
-  }
-  
-  .timeline-icon.activity {
-    color: #ff7597;
-  }
-  
   .timeline-content {
     flex: 1;
   }
@@ -608,6 +570,11 @@ import { useAuthStore } from '../store/auth';
     color: var(--text-muted);
   }
   
+  /* Challenges Card Styles */
+  .challenges-card {
+    padding: 1.5rem;
+  }
+  
   .challenges-tabs {
     display: flex;
     gap: 1rem;
@@ -624,8 +591,7 @@ import { useAuthStore } from '../store/auth';
   }
   
   .challenges-tabs button:hover {
-    color: var(--text-primary);
-    background: transparent;
+    color: var (--text-primary);
   }
   
   .challenges-tabs button.active {
@@ -669,67 +635,40 @@ import { useAuthStore } from '../store/auth';
     margin-top: 0.5rem;
   }
   
-  .challenge-category {
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--radius-full);
-    text-transform: uppercase;
-  }
-  
-  .challenge-category.fitness {
-    background: var(--accent-primary);
-    color: #121212;
-  }
-  
-  .challenge-category.mindfulness {
-    background: #03dac6;
-    color: #121212;
-  }
-  
-  .challenge-category.nutrition {
-    background: #ff7597;
-    color: #121212;
-  }
-  
-  .challenge-category.wellness {
-    background: #ffb74d;
-    color: #121212;
-  }
-  
   .challenge-points {
     font-weight: 600;
     color: var(--accent-primary);
   }
   
-  .challenge-progress {
-    margin-top: 0.75rem;
+  .challenge-status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-full);
+    margin-left: 0.5rem;
   }
   
-  .progress-bar {
-    height: 6px;
-    background: var(--bg-card);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  
-  .progress-fill {
-    height: 100%;
+  .challenge-status.active {
     background: var(--accent-primary);
-    border-radius: 3px;
-    transition: width 0.3s ease;
+    color: #121212;
   }
   
-  .progress-text {
-    margin-top: 0.25rem;
+  .challenge-status.completed {
+    background: #ffb74d;
+    color: #121212;
+  }
+  
+  .challenge-dates {
     font-size: 0.85rem;
     color: var(--text-secondary);
+    margin-top: 0.5rem;
   }
   
   .challenge-action {
     white-space: nowrap;
   }
   
+  .no-activities,
   .no-challenges {
     text-align: center;
     padding: 2rem 0;
@@ -791,7 +730,6 @@ import { useAuthStore } from '../store/auth';
   
   .close-button:hover {
     color: var(--text-primary);
-    background: transparent;
   }
   
   .modal-form {
