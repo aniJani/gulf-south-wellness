@@ -67,9 +67,50 @@
       <div class="dashboard-grid">
         <div class="activity-chart-container card">
           <div class="card-header">
-            <h2>Activity Trends</h2>
+            <h2>{{ activeChartView === 'trends' ? 'Activity Trends' : 'Leaderboard' }}</h2>
+            <div class="view-toggle">
+              <button :class="{ active: activeChartView === 'trends' }" @click="activeChartView = 'trends'">Trends</button>
+              <button :class="{ active: activeChartView === 'leaderboard' }" @click="setLeaderboardView('leaderboard')">Leaderboard</button>
+            </div>
           </div>
-          <ActivityChart :chartData="chartData" />
+          
+          <!-- Activity Trends View -->
+          <div v-if="activeChartView === 'trends'">
+            <ActivityChart :chartData="chartData" />
+          </div>
+          
+          <!-- Leaderboard View -->
+          <div v-else class="leaderboard-container">
+            <div class="leaderboard-tabs">
+              <button :class="{ active: leaderboardType === 'users' }" @click="leaderboardType = 'users'">Users</button>
+              <button :class="{ active: leaderboardType === 'teams' }" @click="leaderboardType = 'teams'">Teams</button>
+            </div>
+            
+            <!-- Users Leaderboard -->
+            <div v-if="leaderboardType === 'users'" class="leaderboard-list">
+              <div v-for="(user, index) in userLeaderboard" :key="user.user_id" class="leaderboard-item">
+                <div class="rank">{{ index + 1 }}</div>
+                <div class="user-info">
+                  <div class="username">{{ user.username || 'Anonymous User' }}</div>
+                </div>
+                <div class="points">{{ user.points }} points</div>
+              </div>
+              <div v-if="userLeaderboard.length === 0" class="no-data">No leaderboard data available</div>
+            </div>
+            
+            <!-- Teams Leaderboard -->
+            <div v-else class="leaderboard-list">
+              <div v-for="(team, index) in teamLeaderboard" :key="team.team_id" class="leaderboard-item">
+                <div class="rank">{{ index + 1 }}</div>
+                <div class="team-info">
+                  <div class="team-name">{{ team.team_name }}</div>
+                  <div class="member-count">{{ team.member_count }} members</div>
+                </div>
+                <div class="points">{{ team.points }} points</div>
+              </div>
+              <div v-if="teamLeaderboard.length === 0" class="no-data">No team data available</div>
+            </div>
+          </div>
         </div>
         
         <div class="active-challenges card">
@@ -141,7 +182,7 @@
   <script>
   import { computed, onMounted, ref, watch } from 'vue';
 import ActivityChart from '../components/ui/ActivityChart.vue';
-import { completeActivity, completeChallenge, getActivitiesByUser, getUserChallenges, getUserStatistics } from '../services/api';
+import { completeActivity, completeChallenge, getActivitiesByUser, getTeamLeaderboard, getUserChallenges, getUsersLeaderboard, getUserStatistics } from '../services/api';
 import { useAuthStore } from '../store/auth';
   
   export default {
@@ -364,6 +405,39 @@ const fetchDashboardData = async () => {
     console.error('Error fetching dashboard data:', error);
   }
 };
+
+// Add these variables in the setup function
+const activeChartView = ref('trends');
+const leaderboardType = ref('users');
+const userLeaderboard = ref([]);
+const teamLeaderboard = ref([]);
+
+// Function to fetch leaderboard data
+const fetchLeaderboardData = async () => {
+  try {
+    console.log('Fetching leaderboard data...');
+    const [usersResponse, teamsResponse] = await Promise.all([
+      getUsersLeaderboard(10), // Changed from getUsersLeaderboard
+      getTeamLeaderboard()
+    ]);
+    
+    console.log('Users leaderboard response:', usersResponse);
+    console.log('Teams leaderboard response:', teamsResponse);
+    
+    userLeaderboard.value = usersResponse.data || [];
+    teamLeaderboard.value = teamsResponse.data || [];
+  } catch (error) {
+    console.error('Error fetching leaderboard data:', error);
+  }
+};
+
+// Function to set leaderboard view and fetch data if needed
+const setLeaderboardView = (view) => {
+  activeChartView.value = view;
+  if (view === 'leaderboard') {
+    fetchLeaderboardData(); // Always fetch fresh data when switching to leaderboard
+  }
+};
       
       const handleCompleteChallenge = async (challengeId) => {
         try {
@@ -412,6 +486,7 @@ const fetchDashboardData = async () => {
       
       onMounted(() => {
         fetchDashboardData();
+        fetchLeaderboardData(); // Fetch leaderboard data on mount
       });
       
       return {
@@ -422,8 +497,13 @@ const fetchDashboardData = async () => {
         activeActivities,
         activeSection,
         chartData,
+        activeChartView,
+        leaderboardType,
+        userLeaderboard,
+        teamLeaderboard,
         handleCompleteChallenge,
-        handleMarkActivityComplete
+        handleMarkActivityComplete,
+        setLeaderboardView
       };
     }
   };
@@ -717,4 +797,87 @@ const fetchDashboardData = async () => {
     background: rgba(187, 134, 252, 0.1);
     color: var(--accent-primary);
   }
+
+  .leaderboard-container {
+  padding: 0 1.25rem 1.25rem;
+}
+
+.leaderboard-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.leaderboard-tabs button {
+  background: transparent;
+  border: none;
+  padding: 0.5rem 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  position: relative;
+  cursor: pointer;
+}
+
+.leaderboard-tabs button.active {
+  color: var(--accent-primary);
+}
+
+.leaderboard-tabs button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--accent-primary);
+  border-radius: 2px;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.rank {
+  font-weight: 600;
+  font-size: 1.25rem;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.user-info, .team-info {
+  flex: 1;
+  margin-left: 0.75rem;
+}
+
+.username, .team-name {
+  font-weight: 500;
+}
+
+.member-count {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.points {
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.no-data {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--text-secondary);
+}
   </style>
