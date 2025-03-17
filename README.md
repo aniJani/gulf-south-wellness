@@ -130,7 +130,6 @@ Gulf South Wellness is a comprehensive platform aimed at enhancing the health an
 - **Challenges**: Create, join, and complete health and wellness challenges
 - **Activities**: Track personal health activities and earn points
 - **Teams**: Form teams and collaborate on wellness goals
-- **Weekly Challenges**: Select and participate in weekly featured challenges
 - **Leaderboards**: View top performers by user, and teams.
 - **Statistics**: Track individual and challenge participation statistics
 
