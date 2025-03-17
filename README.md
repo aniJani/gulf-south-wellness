@@ -22,13 +22,26 @@ git clone https://github.com/aniJani/gulf_south_backend
 cd gulf_south_backend
 ```
 
-#### 2. Set Up the Python Environment using Conda
+#### 2. Set Up the Python Environment
 
-Open your terminal in the backend directory and run:
+You can use either Conda or venv to set up your Python environment:
+
+**Option A: Using Conda**
 
 ```bash
 conda create --name test1 python=3.10.16
 conda activate test1
+pip install -r requirements.txt
+```
+
+**Option B: Using venv**
+
+```bash
+python -m venv venv
+# On Windows
+venv\Scripts\activate
+# On macOS/Linux
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
