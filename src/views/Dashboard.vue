@@ -74,33 +74,64 @@
         
         <div class="active-challenges card">
           <div class="card-header">
-            <h2>Active Challenges</h2>
-            <router-link to="/challenges" class="view-all">
-              View All
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </router-link>
-          </div>
-          
-          <div v-if="activeChallenges.length > 0" class="challenges-list">
-            <div v-for="challenge in activeChallenges" :key="challenge.id" class="challenge-item">
-              <div class="challenge-info">
-                <h3>{{ challenge.title }}</h3>
-                <div class="challenge-meta">
-                  <span class="challenge-category" :class="challenge.category">{{ challenge.category }}</span>
-                  <span class="challenge-status">Active</span>
-                </div>
+            <h2>{{ activeSection === 'challenges' ? 'My Challenges' : 'My Activities' }}</h2>
+            <div class="actions-container">
+              <div class="view-toggle">
+                <button :class="{ active: activeSection === 'challenges' }" @click="activeSection = 'challenges'">Challenges</button>
+                <button :class="{ active: activeSection === 'activities' }" @click="activeSection = 'activities'">Activities</button>
               </div>
-              <button class="secondary log-button" @click="logActivity(challenge.id)">
-                Log
-              </button>
+              <router-link to="/challenges" class="view-all">
+                View All
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </router-link>
             </div>
           </div>
           
-          <div v-else class="no-challenges">
-            <p>You have no active challenges.</p>
-            <router-link to="/challenges" class="primary button">Browse Challenges</router-link>
+          <!-- Challenges View -->
+          <div v-if="activeSection === 'challenges'">
+            <div v-if="activeChallenges.length > 0" class="challenges-list">
+              <div v-for="challenge in activeChallenges" :key="challenge.id" class="challenge-item">
+                <div class="challenge-info">
+                  <h3>{{ challenge.title }}</h3>
+                  <div class="challenge-meta">
+                    <span class="challenge-category" :class="challenge.category">{{ challenge.category }}</span>
+                    <span class="challenge-status">Active</span>
+                  </div>
+                </div>
+                <button class="secondary log-button" @click="handleCompleteChallenge(challenge.id)">
+                  Complete
+                </button>
+              </div>
+            </div>
+            
+            <div v-else class="no-challenges">
+              <p>You have no active challenges.</p>
+              <router-link to="/challenges" class="primary button">Browse Challenges</router-link>
+            </div>
+          </div>
+          
+          <!-- Activities View -->
+          <div v-else>
+            <div v-if="activeActivities.length > 0" class="challenges-list">
+              <div v-for="activity in activeActivities" :key="activity.id" class="challenge-item">
+                <div class="challenge-info">
+                  <h3>{{ activity.title }}</h3>
+                  <div class="challenge-meta">
+                    <span>{{ activity.points }} points</span>
+                  </div>
+                </div>
+                <button class="secondary log-button" @click="handleMarkActivityComplete(activity.id)">
+                  Complete
+                </button>
+              </div>
+            </div>
+            
+            <div v-else class="no-challenges">
+              <p>You have no active activities.</p>
+              <router-link to="/challenges?view=activities" class="primary button">Create Activity</router-link>
+            </div>
           </div>
         </div>
       </div>
@@ -110,7 +141,7 @@
   <script>
   import { computed, onMounted, ref, watch } from 'vue';
 import ActivityChart from '../components/ui/ActivityChart.vue';
-import { completeActivity, getActivitiesByUser, getUserChallenges, getUserStatistics } from '../services/api';
+import { completeActivity, completeChallenge, getActivitiesByUser, getUserChallenges, getUserStatistics } from '../services/api';
 import { useAuthStore } from '../store/auth';
   
   export default {
@@ -130,6 +161,8 @@ import { useAuthStore } from '../store/auth';
       
       // Active challenges using the API with ?completed=false
       const activeChallenges = ref([]);
+      const activeSection = ref('challenges');
+      const activeActivities = ref([]);
       
       const currentDate = computed(() => {
         const now = new Date();
@@ -288,52 +321,92 @@ const setEmptyChartData = () => {
   };
 };
       
-      const fetchDashboardData = async () => {
+      // Update the fetch activities part of fetchDashboardData
+const fetchDashboardData = async () => {
+  try {
+    // Fetch user statistics 
+    const statsResponse = await getUserStatistics(userId.value);
+    if (statsResponse.data) {
+      stats.value = {
+        challengesCompleted: statsResponse.data.challenges_completed || 0,
+        points: statsResponse.data.total_points || 0,
+        activitiesLogged: statsResponse.data.activities_count || 0,
+        challengesJoined: statsResponse.data.challenges_joined || 0 // Use challenges_joined instead of streak
+      };
+    }
+    
+    // Fetch active challenges - only get the latest 3, don't filter by progress
+    const challengesResponse = await getUserChallenges(userId.value, { completed: false });
+    if (challengesResponse.data && challengesResponse.data.length > 0) {
+      // Just take the first 3 challenges without any progress filtering
+      activeChallenges.value = challengesResponse.data.slice(0, 3).map(challenge => ({
+        ...challenge,
+        is_active: true // Ensure is_active flag is set
+      }));
+    } else {
+      activeChallenges.value = [];
+    }
+
+    // Fetch active activities - only get the latest 3 INCOMPLETE ones
+    const activitiesResponse = await getActivitiesByUser(userId.value);
+    if (activitiesResponse.data && activitiesResponse.data.length > 0) {
+      // Filter to only show incomplete activities (not completed yet)
+      activeActivities.value = activitiesResponse.data
+        .filter(activity => !activity.is_completed)
+        .slice(0, 3);
+    } else {
+      activeActivities.value = [];
+    }
+
+    // Fetch activity data for chart
+    await fetchActivityChartData();
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+  }
+};
+      
+      const handleCompleteChallenge = async (challengeId) => {
         try {
-          // Fetch user statistics 
-          const statsResponse = await getUserStatistics(userId.value);
-          if (statsResponse.data) {
-            stats.value = {
-              challengesCompleted: statsResponse.data.challenges_completed || 0,
-              points: statsResponse.data.total_points || 0,
-              activitiesLogged: statsResponse.data.activities_count || 0,
-              challengesJoined: statsResponse.data.challenges_joined || 0 // Use challenges_joined instead of streak
-            };
+          console.log('Completing challenge with ID:', challengeId);
+          
+          // Call API without checking result.success
+          await completeChallenge(challengeId, userId.value);
+          
+          // Update local state - remove from active challenges list
+          const challengeIndex = activeChallenges.value.findIndex(c => c.id === challengeId);
+          if (challengeIndex !== -1) {
+            activeChallenges.value.splice(challengeIndex, 1);
+            console.log('Challenge removed from active list');
           }
           
-          // Fetch active challenges - only get the latest 3, don't filter by progress
-          const challengesResponse = await getUserChallenges(userId.value, { completed: false });
-          if (challengesResponse.data && challengesResponse.data.length > 0) {
-            // Just take the first 3 challenges without any progress filtering
-            activeChallenges.value = challengesResponse.data.slice(0, 3).map(challenge => ({
-              ...challenge,
-              is_active: true // Ensure is_active flag is set
-            }));
-          } else {
-            activeChallenges.value = [];
-          }
-      
-          // Fetch activity data for chart
-          await fetchActivityChartData();
+          // Refresh dashboard data to update stats
+          await fetchDashboardData();
+          console.log('Challenge completed successfully!');
         } catch (error) {
-          console.error('Error fetching dashboard data:', error);
+          console.error('Error completing challenge:', error);
         }
       };
-      
-      const logActivity = async (challengeId) => {
+
+      const handleMarkActivityComplete = async (activityId) => {
         try {
-          const response = await completeActivity(challengeId, userId.value);
+          console.log('Completing activity with ID:', activityId);
           
-          if (response.success) {
-            // Refresh dashboard data to get updated stats
-            await fetchDashboardData();
-            
-            // Optionally show success message
-            console.log('Activity logged successfully!');
+          // Call API without checking result.success (similar to Challenges.vue)
+          await completeActivity(activityId, userId.value);
+          
+          // Update local state - mark activity as completed and remove from list
+          const activityIndex = activeActivities.value.findIndex(a => a.id === activityId);
+          if (activityIndex !== -1) {
+            // Remove from active activities list immediately
+            activeActivities.value.splice(activityIndex, 1);
+            console.log('Activity removed from active list');
           }
+          
+          // Refresh dashboard data to update stats
+          await fetchDashboardData();
+          console.log('Activity completed successfully!');
         } catch (error) {
-          console.error('Error logging activity:', error);
-          // Show error notification
+          console.error('Error completing activity:', error);
         }
       };
       
@@ -346,8 +419,11 @@ const setEmptyChartData = () => {
         currentDate,
         stats,
         activeChallenges,
+        activeActivities,
+        activeSection,
         chartData,
-        logActivity
+        handleCompleteChallenge,
+        handleMarkActivityComplete
       };
     }
   };
@@ -608,5 +684,37 @@ const setEmptyChartData = () => {
     .stats-grid {
       grid-template-columns: 1fr;
     }
+  }
+
+  .actions-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  
+  .view-toggle {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .view-toggle button {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+  }
+  
+  .view-toggle button:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+  
+  .view-toggle button.active {
+    background: rgba(187, 134, 252, 0.1);
+    color: var(--accent-primary);
   }
   </style>
