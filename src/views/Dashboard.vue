@@ -227,8 +227,8 @@ const fetchActivityChartData = async () => {
     
     // Get user's activities and completed challenges
     const [activitiesResponse, completedChallengesResponse] = await Promise.all([
-      getActivitiesByUser(userId.value, { completed: true, timestamp }), // Only get COMPLETED activities
-      getUserChallenges(userId.value, { completed: true, timestamp }) // Add timestamp
+      getActivitiesByUser(userId.value, { completed: true, timestamp }),
+      getUserChallenges(userId.value, { completed: true, timestamp })
     ]);
     
     console.log('Completed activities:', activitiesResponse.data);
@@ -243,64 +243,78 @@ const fetchActivityChartData = async () => {
     const activities = activitiesResponse.data || [];
     const completedChallenges = completedChallengesResponse.data || [];
     
-    // Debug what's being processed
-    console.log('Processing activities:', activities.length);
-    console.log('Processing challenges:', completedChallenges.length);
+    const convertToUTC5 = (dateString) => {
+      const date = new Date(dateString);
+      const utc5Date = new Date(date.getTime() - 5 * 60 * 60 * 1000);
+      return utc5Date;
+    };
+    
+    // Helper to format date as YYYY-MM-DD
+    const formatDateYMD = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    // Helper to format date as M/D for display
+    const formatDateMD = (date) => {
+      return `${date.getMonth() + 1}/${date.getDate()}`;
+    };
     
     const now = new Date();
+    const nowUTC5 = convertToUTC5(now);
     
     const dateLabels = [];
     const dateGroups = {};
     const activityByDate = {};
     const challengesByDate = {};
     
+    // Create arrays for the last 7 days (including today) in UTC-5
     for (let i = 6; i >= 0; i--) {
-      const date = new Date(now);
+      const date = new Date(nowUTC5);
       date.setDate(date.getDate() - i);
       
-      const formattedDate = `${date.getMonth() + 1}/${date.getDate()}`;
+      const formattedDate = formatDateMD(date);
       dateLabels.push(formattedDate);
       
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const dateKey = `${year}-${month}-${day}`;
+      const dateKey = formatDateYMD(date);
       
-      console.log(`Date key for i=${i}: ${dateKey}`);
+      console.log(`Date key for i=${i}: ${dateKey} (display: ${formattedDate})`);
       
       dateGroups[dateKey] = 6 - i;
       activityByDate[dateKey] = 0;
       challengesByDate[dateKey] = 0;
     }
     
-    console.log('Date groups:', dateGroups);
-    
     activities.forEach(activity => {
       if (activity.completed_at) {
-        const completedDate = activity.completed_at.split('T')[0];
-        console.log(`Activity ${activity.id} completed on: ${completedDate}`);
+        const utc5Date = convertToUTC5(activity.completed_at);
+        const dateKey = formatDateYMD(utc5Date);
         
-        // Only count if it's within our 7-day window
-        if (dateGroups.hasOwnProperty(completedDate)) {
-          activityByDate[completedDate]++;
-          console.log(`Activity counted for ${completedDate}`);
+        console.log(`Activity ${activity.id} completed UTC: ${activity.completed_at}, UTC-5: ${utc5Date.toISOString()}, key: ${dateKey}`);
+        
+        if (dateGroups.hasOwnProperty(dateKey)) {
+          activityByDate[dateKey]++;
+          console.log(`Activity counted for ${dateKey}`);
         } else {
-          console.log(`Activity date ${completedDate} not in range`);
+          console.log(`Activity date ${dateKey} not in range`);
         }
       }
     });
     
     completedChallenges.forEach(challenge => {
       if (challenge.completed_at) {
-        // Extract just the date part YYYY-MM-DD
-        const completedDate = challenge.completed_at.split('T')[0];
-        console.log(`Challenge ${challenge.id} completed on: ${completedDate}`);
+        const utc5Date = convertToUTC5(challenge.completed_at);
+        const dateKey = formatDateYMD(utc5Date);
         
-        if (dateGroups.hasOwnProperty(completedDate)) {
-          challengesByDate[completedDate]++;
-          console.log(`Challenge counted for ${completedDate}`);
+        console.log(`Challenge ${challenge.id} completed UTC: ${challenge.completed_at}, UTC-5: ${utc5Date.toISOString()}, key: ${dateKey}`);
+        
+        if (dateGroups.hasOwnProperty(dateKey)) {
+          challengesByDate[dateKey]++;
+          console.log(`Challenge counted for ${dateKey}`);
         } else {
-          console.log(`Challenge date ${completedDate} not in range`);
+          console.log(`Challenge date ${dateKey} not in range`);
         }
       }
     });
